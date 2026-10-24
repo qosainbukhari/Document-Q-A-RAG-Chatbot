@@ -1,7 +1,8 @@
-📄 Document Q&A RAG Chatbot
-CI Pipeline
+# 📄 Document Q&A RAG Chatbot
 
-Production-ready Retrieval-Augmented Generation (RAG) chatbot that allows users to upload PDF documents and ask questions using semantic search, vector embeddings, and Groq-powered Llama3.
+[![CI Pipeline](https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot/actions/workflows/ci.yml/badge.svg)](https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot/actions/workflows/ci.yml)
+
+End-to-end Retrieval-Augmented Generation (RAG) chatbot that allows users to upload PDF documents and ask questions using semantic search, vector embeddings, and Groq-powered Llama 3.1.
 
 <p align="center">
   <img src="assest/pic.png" width="900"/>
@@ -18,7 +19,7 @@ Production-ready Retrieval-Augmented Generation (RAG) chatbot that allows users 
 ✅ FastAPI backend APIs  
 ✅ Streamlit frontend UI  
 ✅ Dockerized full-stack setup  
-✅ Groq-powered Llama3 inference  
+✅ Groq-powered Llama 3.1 inference  
 
 ---
 
@@ -35,7 +36,7 @@ Production-ready Retrieval-Augmented Generation (RAG) chatbot that allows users 
 - Streamlit
 
 ## LLM & Embeddings
-- Llama3 via Groq
+- Llama 3.1 8B via Groq
 - all-MiniLM-L6-v2
 
 ## DevOps
@@ -61,7 +62,7 @@ Semantic Retrieval
         ↓
 Prompt + Retrieved Context
         ↓
-Llama3 via Groq
+Llama 3.1 8B via Groq
         ↓
 Grounded Answer + Citations
 ```
@@ -71,7 +72,7 @@ Grounded Answer + Citations
 # 📂 Project Structure
 
 ```text
-Document-Q&A-RAG-Chatbot/
+Document-Q-A-RAG-Chatbot/
 │
 ├── app/
 │   ├── core/
@@ -108,9 +109,9 @@ Document-Q&A-RAG-Chatbot/
 ## 1. Clone Repository
 
 ```bash
-git clone https://github.com/your-username/document-q-a-rag-chatbot.git
+git clone https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot.git
 
-cd document-q-a-rag-chatbot
+cd Document-Q-A-RAG-Chatbot
 ```
 
 ---
@@ -122,7 +123,7 @@ Create `.env`
 ```env
 GROQ_API_KEY=your_groq_api_key
 
-GROQ_MODEL=llama3-8b-8192
+GROQ_MODEL=llama-3.1-8b-instant
 
 CHROMA_DB_DIR=./models/chroma_db
 
@@ -209,7 +210,7 @@ Tested on 20 manual Q&A pairs across multiple PDF documents.
 | Average Response Time | 3.2s |
 | Embedding Model | all-MiniLM-L6-v2 |
 | Vector Database | ChromaDB |
-| LLM | Llama3 via Groq |
+| LLM | Llama 3.1 8B via Groq |
 
 ---
 

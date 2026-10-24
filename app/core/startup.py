@@ -1,6 +1,6 @@
 from src.embeddings.embedding_model import EmbeddingModel
 from src.vectordb.chroma_store import ChromaVectorStore
-from src.llm.ollama_client import GroqClient
+from src.llm.groq_client import GroqClient
 from src.llm.conversation_memory import ConversationMemory
 
 from src.utils.logger import logger

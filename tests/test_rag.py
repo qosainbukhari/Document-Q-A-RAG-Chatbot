@@ -6,7 +6,7 @@ from src.vectordb.chroma_store import ChromaVectorStore
 
 from src.retriever.retriever import Retriever
 
-from src.llm.ollama_client import GroqClient
+from src.llm.groq_client import GroqClient
 from src.llm.rag_chain import RAGChain
 
 
