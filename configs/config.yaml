@@ -26,6 +26,11 @@ retriever:
     enabled: true   # re-score the candidates with a cross-encoder, keep top_k
     model: cross-encoder/ms-marco-MiniLM-L-6-v2
 
+  compression:
+    enabled: true   # keep only sentences similar to the query (no LLM call)
+    similarity_threshold: 0.3   # cosine similarity, MiniLM embeddings
+    min_sentences: 2            # never shrink a chunk below this
+
 memory:
   window_size: 5
   max_sessions: 1000

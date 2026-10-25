@@ -6,7 +6,8 @@ from src.utils.logger import logger
 class Retriever:
 
     def __init__(self, vectordb, config_path=DEFAULT_CONFIG_PATH,
-                 config=None, docstore=None, bm25=None, reranker=None):
+                 config=None, docstore=None, bm25=None, reranker=None,
+                 compressor=None):
 
         self.vectordb = vectordb
 
@@ -30,6 +31,9 @@ class Retriever:
 
         # Optional: re-scores candidates; without it we trust search order
         self.reranker = reranker
+
+        # Optional: drops sentences unrelated to the query
+        self.compressor = compressor
 
     def search(self, query):
 
@@ -90,6 +94,9 @@ class Retriever:
                 results = self.reranker.rerank(query, candidates, self.top_k)
             else:
                 results = candidates[:self.top_k]
+
+            if self.compressor:
+                results = self.compressor.compress(query, results)
 
             logger.info(
                 f"Retrieved {len(results)} relevant chunks "

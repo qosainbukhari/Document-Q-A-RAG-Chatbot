@@ -38,7 +38,10 @@ def fake_embeddings():
 
 # Heavy or LLM-calling features are OFF in tests unless a test turns them on
 TEST_DEFAULTS = {
-    "retriever": {"rerank": {"enabled": False}},
+    "retriever": {
+        "rerank": {"enabled": False},
+        "compression": {"enabled": False},
+    },
 }
 
 

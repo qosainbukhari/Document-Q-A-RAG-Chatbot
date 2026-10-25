@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 from src.ingestion.pipeline import IngestionPipeline
 from src.retriever.bm25_index import BM25Index
+from src.retriever.compressor import EmbeddingCompressor
 from src.retriever.reranker import CrossEncoderReranker
 from src.retriever.retriever import Retriever
 from src.vectordb.chroma_store import ChromaVectorStore
@@ -21,6 +22,7 @@ class RAGComponents:
     docstore: JSONDocStore
     bm25: Optional[BM25Index]
     reranker: Optional[CrossEncoderReranker]
+    compressor: Optional[EmbeddingCompressor]
     retriever: Retriever
     ingestion: IngestionPipeline
 
@@ -71,12 +73,25 @@ def build_components(config, embedding_model, llm, persist_directory=None,
     elif reranker is None:
         reranker = CrossEncoderReranker(rerank_config["model"])
 
+    compression_config = retriever_config.get("compression", {})
+
+    compressor = None
+
+    if compression_config.get("enabled", False):
+
+        compressor = EmbeddingCompressor(
+            embedding_model,
+            similarity_threshold=compression_config.get("similarity_threshold", 0.3),
+            min_sentences=compression_config.get("min_sentences", 2)
+        )
+
     retriever = Retriever(
         vectordb,
         config=config,
         docstore=docstore if strategy == "parent_child" else None,
         bm25=bm25,
-        reranker=reranker
+        reranker=reranker,
+        compressor=compressor
     )
 
     ingestion = IngestionPipeline(
@@ -92,6 +107,7 @@ def build_components(config, embedding_model, llm, persist_directory=None,
         docstore=docstore,
         bm25=bm25,
         reranker=reranker,
+        compressor=compressor,
         retriever=retriever,
         ingestion=ingestion,
     )
