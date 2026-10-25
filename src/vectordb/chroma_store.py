@@ -10,13 +10,23 @@ load_dotenv()
 
 class ChromaVectorStore:
 
-    def __init__(self, embedding_model):
+    def __init__(self, embedding_model, persist_directory=None):
 
         self.embedding_model = embedding_model
 
-        self.persist_directory = os.getenv("CHROMA_DB_DIR")
+        self.persist_directory = (
+            persist_directory or os.getenv("CHROMA_DB_DIR")
+        )
 
     def create_vector_store(self, chunks):
+
+        vectordb = self.load_vector_store()
+
+        self.add_chunks(vectordb, chunks)
+
+        return vectordb
+
+    def add_chunks(self, vectordb, chunks):
 
         try:
 
@@ -68,23 +78,46 @@ class ChromaVectorStore:
                     "No valid chunks available for vector DB creation"
                 )
 
-            vectordb = Chroma.from_documents(
-                documents=valid_chunks,
-                embedding=self.embedding_model,
-                persist_directory=self.persist_directory
-            )
+            # Re-upload replaces: drop every old chunk of these sources first,
+            # so chunks that no longer exist in the new version don't linger
+            sources = {
+                chunk.metadata.get("source")
+                for chunk in valid_chunks
+            }
+
+            for source in sources:
+                self.delete_source(vectordb, source)
+
+            ids = [
+                chunk.metadata["chunk_id"]
+                for chunk in valid_chunks
+            ]
+
+            vectordb.add_documents(valid_chunks, ids=ids)
 
             logger.info(
                 f"Stored {len(valid_chunks)} chunks in ChromaDB"
             )
 
-            return vectordb
+            return len(valid_chunks)
 
         except Exception as e:
 
             logger.error(f"Failed to create vector DB: {e}")
 
             raise
+
+    def delete_source(self, vectordb, source):
+
+        existing = vectordb.get(where={"source": source})
+
+        if existing["ids"]:
+
+            vectordb.delete(ids=existing["ids"])
+
+            logger.info(
+                f"Deleted {len(existing['ids'])} old chunks of {source}"
+            )
 
     def load_vector_store(self):
 

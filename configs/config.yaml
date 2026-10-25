@@ -6,3 +6,4 @@ retriever:
 
 memory:
   window_size: 5
+  max_sessions: 1000

@@ -1,8 +1,19 @@
+import os
+
 import requests
 import streamlit as st
 
 
-API_URL = "http://backend:8000"
+API_URL = os.getenv("API_URL", "http://backend:8000")
+
+
+def error_message(response):
+
+    # FastAPI's HTTPException puts the message under "detail"
+    try:
+        return response.json().get("detail", response.text)
+    except ValueError:
+        return response.text
 
 
 
@@ -41,13 +52,13 @@ if uploaded_file is not None:
                 files=files
             )
 
-            result = response.json()
+            if not response.ok:
 
-            if "error" in result:
-
-                st.error(result["error"])
+                st.error(error_message(response))
 
             else:
+
+                result = response.json()
 
                 st.success(result["message"])
 
@@ -72,17 +83,21 @@ if st.button("Ask"):
             response = requests.post(
                 f"{API_URL}/chat",
                 json={
-                    "question": question
+                    "question": question,
+                    "session_id": st.session_state.get("session_id")
                 }
             )
 
-            result = response.json()
+            if not response.ok:
 
-            if "error" in result:
-
-                st.error(result["error"])
+                st.error(error_message(response))
 
             else:
+
+                result = response.json()
+
+                # Remember our session so follow-up questions keep their history
+                st.session_state["session_id"] = result["session_id"]
 
                 st.subheader("Answer")
 

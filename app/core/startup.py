@@ -1,14 +1,19 @@
+import yaml
+
 from src.embeddings.embedding_model import EmbeddingModel
 from src.vectordb.chroma_store import ChromaVectorStore
 from src.llm.groq_client import GroqClient
-from src.llm.conversation_memory import ConversationMemory
+from src.llm.conversation_memory import SessionMemoryStore
 
 from src.utils.logger import logger
 
 
-def load_models(app):
+def load_models(app, config_path="configs/config.yaml"):
 
     try:
+
+        with open(config_path, "r") as file:
+            config = yaml.safe_load(file)
 
         logger.info("Loading embedding model...")
 
@@ -16,9 +21,9 @@ def load_models(app):
 
         logger.info("Loading vector database...")
 
-        vectordb = ChromaVectorStore(
-            embedding_model
-        ).load_vector_store()
+        vector_store = ChromaVectorStore(embedding_model)
+
+        vectordb = vector_store.load_vector_store()
 
         logger.info("Loading LLM...")
 
@@ -26,15 +31,17 @@ def load_models(app):
 
         logger.info("Loading conversation memory...")
 
-        memory = ConversationMemory(
-            window_size=5
+        memory_store = SessionMemoryStore(
+            window_size=config["memory"]["window_size"],
+            max_sessions=config["memory"].get("max_sessions", 1000)
         )
 
         # Store globally inside FastAPI app
         app.state.embedding_model = embedding_model
+        app.state.vector_store = vector_store
         app.state.vectordb = vectordb
         app.state.llm = llm
-        app.state.memory = memory
+        app.state.memory_store = memory_store
 
         logger.info(
             "All models loaded successfully"

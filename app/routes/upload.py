@@ -1,40 +1,46 @@
 import shutil
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, File, Request
+from fastapi import APIRouter, HTTPException, UploadFile, File, Request
+from pypdf.errors import PdfReadError
 
 from src.ingestion.pdf_loader import PDFLoader
 from src.ingestion.chunker import TextChunker
-from src.vectordb.chroma_store import ChromaVectorStore
+
+from src.utils.logger import logger
 
 
 router = APIRouter()
 
 UPLOAD_DIR = "data/raw"
 
-Path(UPLOAD_DIR).mkdir(
-    parents=True,
-    exist_ok=True
-)
-
 
 @router.post("/upload")
-async def upload_pdf(
+def upload_pdf(
     request: Request,
     file: UploadFile = File(...)
 ):
 
+    # Keep only the base name so "../../x.pdf" can't escape UPLOAD_DIR
+    filename = Path(file.filename or "").name
+
+    # Validate extension
+    if not filename.lower().endswith(".pdf"):
+
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files allowed"
+        )
+
     try:
 
-        # Validate extension
-        if not file.filename.endswith(".pdf"):
-
-            return {
-                "error": "Only PDF files allowed"
-            }
+        Path(UPLOAD_DIR).mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
         # Save uploaded file
-        file_path = f"{UPLOAD_DIR}/{file.filename}"
+        file_path = f"{UPLOAD_DIR}/{filename}"
 
         with open(file_path, "wb") as buffer:
 
@@ -48,6 +54,25 @@ async def upload_pdf(
 
         documents = loader.load_pdf()
 
+    except (ValueError, PdfReadError) as e:
+
+        # Client's fault: corrupt PDF, or scanned PDF with no extractable text
+        raise HTTPException(
+            status_code=422,
+            detail=f"Could not read PDF: {e}"
+        )
+
+    except Exception as e:
+
+        logger.error(f"/upload failed while reading PDF: {e}")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to read PDF"
+        )
+
+    try:
+
         # Chunking
         chunker = TextChunker()
 
@@ -55,26 +80,23 @@ async def upload_pdf(
             documents
         )
 
-        # Access globally loaded embedding model
-        embedding_model = (
-            request.app.state.embedding_model
+        # Add to the vector DB loaded at startup (replaces old chunks of this file)
+        stored = request.app.state.vector_store.add_chunks(
+            request.app.state.vectordb,
+            chunks
         )
-
-        # Create vector DB
-        vectordb = ChromaVectorStore(
-            embedding_model
-        )
-
-        vectordb.create_vector_store(chunks)
-
-        return {
-            "message": "PDF uploaded successfully",
-            "filename": file.filename,
-            "total_chunks": len(chunks)
-        }
 
     except Exception as e:
 
-        return {
-            "error": str(e)
-        }
+        logger.error(f"/upload failed while indexing: {e}")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to index PDF"
+        )
+
+    return {
+        "message": "PDF uploaded successfully",
+        "filename": filename,
+        "total_chunks": stored
+    }

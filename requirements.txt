@@ -21,3 +21,4 @@ pyyaml
 python-multipart
 
 pytest
+httpx

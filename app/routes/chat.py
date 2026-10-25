@@ -1,17 +1,25 @@
-from fastapi import APIRouter, Request
+import uuid
+
+from fastapi import APIRouter, HTTPException, Request
 
 from app.schemas import ChatRequest
 from app.services.rag_service import RAGService
+
+from src.utils.logger import logger
 
 
 router = APIRouter()
 
 
+# Plain `def` (not async): retrieval and the LLM call are blocking,
+# so FastAPI runs this in a thread pool instead of freezing the event loop.
 @router.post("/chat")
-async def chat(
+def chat(
     request: Request,
     chat_request: ChatRequest
 ):
+
+    session_id = chat_request.session_id or str(uuid.uuid4())
 
     try:
 
@@ -20,7 +28,7 @@ async def chat(
 
         llm = request.app.state.llm
 
-        memory = request.app.state.memory
+        memory = request.app.state.memory_store.get(session_id)
 
         # Create service
         rag_service = RAGService(
@@ -34,10 +42,15 @@ async def chat(
             chat_request.question
         )
 
-        return response
-
     except Exception as e:
 
-        return {
-            "error": str(e)
-        }
+        logger.error(f"/chat failed: {e}")
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate an answer"
+        )
+
+    response["session_id"] = session_id
+
+    return response

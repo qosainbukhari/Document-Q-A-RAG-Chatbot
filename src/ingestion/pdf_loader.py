@@ -22,7 +22,7 @@ class PDFLoader:
                     f"{self.file_path} not found"
                 )
 
-            if path.suffix != ".pdf":
+            if path.suffix.lower() != ".pdf":
                 raise ValueError(
                     "Only PDF files are supported"
                 )
