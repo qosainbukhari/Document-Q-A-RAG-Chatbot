@@ -31,8 +31,12 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
+          # CPU-only torch: much smaller and faster than the default CUDA build
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install -r requirements.txt
 
+      # Tests that call Groq are skipped automatically when the
+      # GROQ_API_KEY secret is not set; everything else uses fakes.
       - name: Run Tests
         run: |
-          PYTHONPATH=. pytest
+          PYTHONPATH=. pytest -q

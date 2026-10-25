@@ -1,3 +1,7 @@
+import os
+
+import pytest
+
 from src.ingestion.pdf_loader import PDFLoader
 from src.ingestion.chunker import TextChunker
 
@@ -10,7 +14,8 @@ from src.llm.groq_client import GroqClient
 from src.llm.rag_chain import RAGChain
 
 
-def test_rag():
+@pytest.mark.skipif(not os.getenv("GROQ_API_KEY"), reason="GROQ_API_KEY not set")
+def test_rag(tmp_path):
 
     loader = PDFLoader(
         "test/Ml_book.pdf"
@@ -28,8 +33,10 @@ def test_rag():
         EmbeddingModel().get_model()
     )
 
+    # tmp_path: never write test data into the real CHROMA_DB_DIR
     vectordb = ChromaVectorStore(
-        embedding_model
+        embedding_model,
+        persist_directory=str(tmp_path)
     ).create_vector_store(chunks)
 
     retriever = Retriever(vectordb)

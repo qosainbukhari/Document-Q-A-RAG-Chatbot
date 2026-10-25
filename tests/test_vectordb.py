@@ -5,7 +5,7 @@ from src.embeddings.embedding_model import EmbeddingModel
 from src.vectordb.chroma_store import ChromaVectorStore
 
 
-def test_vectordb():
+def test_vectordb(tmp_path):
 
     loader = PDFLoader(
         "test/Ml_book.pdf"
@@ -23,8 +23,10 @@ def test_vectordb():
         EmbeddingModel().get_model()
     )
 
+    # tmp_path: never write test data into the real CHROMA_DB_DIR
     vectordb = ChromaVectorStore(
-        embedding_model
+        embedding_model,
+        persist_directory=str(tmp_path)
     ).create_vector_store(chunks)
 
     assert vectordb is not None

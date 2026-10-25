@@ -10,6 +10,14 @@ services:
     env_file:
       - .env
 
+    environment:
+      # Keep the vector DB + docstore in a volume so uploads survive restarts
+      CHROMA_DB_DIR: /app/models/chroma_db
+
+    volumes:
+      - chroma_data:/app/models/chroma_db
+      - hf_cache:/root/.cache/huggingface
+
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 
@@ -23,4 +31,16 @@ services:
     env_file:
       - .env
 
+    environment:
+      # Inside docker-compose the backend is reached by its service name
+      API_URL: http://backend:8000
+
+    depends_on:
+      - backend
+
     command: streamlit run streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+
+
+volumes:
+  chroma_data:
+  hf_cache:

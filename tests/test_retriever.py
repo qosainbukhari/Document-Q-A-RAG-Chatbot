@@ -6,7 +6,7 @@ from src.vectordb.chroma_store import ChromaVectorStore
 from src.retriever.retriever import Retriever
 
 
-def test_retriever():
+def test_retriever(tmp_path):
 
     loader = PDFLoader(
         "test/Ml_book.pdf"
@@ -24,8 +24,10 @@ def test_retriever():
         EmbeddingModel().get_model()
     )
 
+    # tmp_path: never write test data into the real CHROMA_DB_DIR
     vectordb = ChromaVectorStore(
-        embedding_model
+        embedding_model,
+        persist_directory=str(tmp_path)
     ).create_vector_store(chunks)
 
     retriever = Retriever(vectordb)
