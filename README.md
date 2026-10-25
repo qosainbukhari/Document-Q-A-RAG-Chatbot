@@ -91,7 +91,7 @@ Or run `docker compose up --build`, and run `make help` to see all commands.
 | Part | Tool |
 |---|---|
 | API / UI | FastAPI, Streamlit |
-| LLM | Groq API: any Groq model via `GROQ_MODEL` (`.env.example`: `openai/gpt-oss-20b`; code default `llama-3.1-8b-instant`) |
+| LLM | Groq API, default `openai/gpt-oss-20b`; any Groq chat model via `GROQ_MODEL` (e.g. `openai/gpt-oss-120b`, `qwen/qwen3.8-27b`) |
 | Embeddings | `all-MiniLM-L6-v2` (sentence-transformers, CPU) |
 | Vector DB | ChromaDB (+ JSON docstore for parent chunks) |
 | Keyword search | `rank_bm25` |
@@ -347,6 +347,11 @@ make test        # or: pytest -q
 
 - Most tests use fake embeddings and a fake LLM, so they run offline in about 20 s.
 - Tests that call Groq are skipped when `GROQ_API_KEY` is not set.
+
+> **Rate limits (free tier):** each Groq model has its own quota, about 8,000 tokens/minute
+> and 200,000 tokens/day for `gpt-oss-20b`. If `/chat` returns **429**, wait a moment,
+> or switch `GROQ_MODEL` in `.env` to another model, which has a separate quota.
+> A full `make eval-all` uses most of one model's daily quota.
 - Current result: 62 passed with a key; 60 passed and 2 skipped without one.
 - GitHub Actions runs the suite on every push and pull request to `main`
   (CPU-only torch).
