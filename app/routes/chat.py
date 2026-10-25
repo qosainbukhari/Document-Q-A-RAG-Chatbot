@@ -44,6 +44,14 @@ def chat(
 
         logger.error(f"/chat failed: {e}")
 
+        # Groq's free tier allows only so many tokens per minute
+        if getattr(e, "status_code", None) == 429:
+
+            raise HTTPException(
+                status_code=429,
+                detail="The LLM rate limit was reached. Please wait a few seconds and try again."
+            )
+
         raise HTTPException(
             status_code=500,
             detail="Failed to generate an answer"

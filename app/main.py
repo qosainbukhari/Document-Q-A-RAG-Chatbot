@@ -9,6 +9,7 @@ from src.observability.tracing import get_tracer
 
 from app.routes.upload import router as upload_router
 from app.routes.chat import router as chat_router
+from app.routes.documents import router as documents_router
 
 
 app = FastAPI(
@@ -41,3 +42,5 @@ async def health_check():
 app.include_router(upload_router)
 
 app.include_router(chat_router)
+
+app.include_router(documents_router)

@@ -173,3 +173,21 @@ def test_chat_history_is_per_session(client):
     # Alice's second prompt saw her first question; Bob's prompt did not
     assert "alice question one" in llm.prompts[1]
     assert "alice question" not in llm.prompts[2]
+
+
+def test_chat_returns_429_when_llm_is_rate_limited(client):
+    upload(client)
+
+    class RateLimitError(Exception):
+        status_code = 429  # like groq.RateLimitError
+
+    class RateLimitedLLM:
+        def invoke(self, prompt):
+            raise RateLimitError("tokens per minute")
+
+    app.state.components.llm = RateLimitedLLM()
+
+    response = client.post("/chat", json={"question": "What is ML?"})
+
+    assert response.status_code == 429
+    assert "wait" in response.json()["detail"]

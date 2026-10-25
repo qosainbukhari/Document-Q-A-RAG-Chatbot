@@ -97,3 +97,27 @@ class JSONDocStore:
             self._to_document(record)
             for record in self.children.values()
         ]
+
+    def list_sources(self):
+
+        # One entry per uploaded PDF: how many pages and searchable chunks
+        sources = {}
+
+        for record in self.children.values():
+
+            metadata = record["metadata"]
+
+            if metadata.get("is_summary"):
+                continue
+
+            entry = sources.setdefault(
+                metadata.get("source"), {"pages": set(), "chunks": 0}
+            )
+
+            entry["pages"].add(metadata.get("page"))
+            entry["chunks"] += 1
+
+        return [
+            {"source": source, "pages": len(entry["pages"]), "chunks": entry["chunks"]}
+            for source, entry in sorted(sources.items())
+        ]
