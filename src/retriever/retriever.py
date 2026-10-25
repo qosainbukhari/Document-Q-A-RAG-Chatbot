@@ -1,4 +1,5 @@
 from src.config import DEFAULT_CONFIG_PATH, load_config
+from src.observability.tracing import get_tracer
 from src.retriever.fusion import reciprocal_rank_fusion
 from src.utils.logger import logger
 
@@ -34,6 +35,8 @@ class Retriever:
 
         # Optional: drops sentences unrelated to the query
         self.compressor = compressor
+
+        self.tracer = get_tracer()
 
     def search(self, query):
 
@@ -91,23 +94,44 @@ class Retriever:
         try:
             queries = search_queries or [query]
 
-            ranked_lists = [self.search(q) for q in queries]
+            with self.tracer.span("search", as_type="retriever",
+                                  input={"queries": queries,
+                                         "hybrid": self.hybrid}) as span:
 
-            if len(ranked_lists) == 1:
-                chunks = ranked_lists[0]
-            else:
-                fused = reciprocal_rank_fusion(ranked_lists, k=self.rrf_k)
-                chunks = [doc for doc, _ in fused[:self.candidates]]
+                ranked_lists = [self.search(q) for q in queries]
 
-            candidates = self.to_parents(chunks)
+                if len(ranked_lists) == 1:
+                    chunks = ranked_lists[0]
+                else:
+                    fused = reciprocal_rank_fusion(ranked_lists, k=self.rrf_k)
+                    chunks = [doc for doc, _ in fused[:self.candidates]]
+
+                span.update(output=describe(chunks))
+
+            with self.tracer.span("parent-mapping") as span:
+
+                candidates = self.to_parents(chunks)
+
+                span.update(output=describe(candidates))
 
             if self.reranker:
-                results = self.reranker.rerank(query, candidates, self.top_k)
+
+                with self.tracer.span("rerank", input={"query": query}) as span:
+
+                    results = self.reranker.rerank(query, candidates, self.top_k)
+
+                    span.update(output=describe(results, "rerank_score"))
+
             else:
                 results = candidates[:self.top_k]
 
             if self.compressor:
-                results = self.compressor.compress(query, results)
+
+                with self.tracer.span("compression") as span:
+
+                    results = self.compressor.compress(query, results)
+
+                    span.update(output=describe(results, "compression_ratio"))
 
             logger.info(
                 f"Retrieved {len(results)} relevant chunks "
@@ -119,3 +143,16 @@ class Retriever:
         except Exception as e:
             logger.error(f"Retrieval failed: {e}")
             raise
+
+
+def describe(documents, score_key=None):
+
+    # Compact view of chunks for the trace: page, score and a text preview
+    return [
+        {
+            "page": doc.metadata.get("page"),
+            **({score_key: doc.metadata.get(score_key)} if score_key else {}),
+            "text": doc.page_content[:150],
+        }
+        for doc in documents
+    ]

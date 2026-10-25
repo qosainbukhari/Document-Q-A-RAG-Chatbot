@@ -18,12 +18,14 @@ class RAGService:
 
     def ask_question(
         self,
-        question: str
+        question: str,
+        session_id=None
     ):
 
         response = (
             self.rag_chain.generate_answer(
-                question
+                question,
+                session_id=session_id
             )
         )
 

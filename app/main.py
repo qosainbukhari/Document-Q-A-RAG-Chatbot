@@ -5,6 +5,7 @@ from fastapi import FastAPI
 load_dotenv()
 
 from app.core.startup import load_models
+from src.observability.tracing import get_tracer
 
 from app.routes.upload import router as upload_router
 from app.routes.chat import router as chat_router
@@ -19,6 +20,13 @@ app = FastAPI(
 async def startup_event():
 
     load_models(app)
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+
+    # Send any traces still waiting in the Langfuse buffer
+    get_tracer().flush()
 
 
 @app.get("/health")

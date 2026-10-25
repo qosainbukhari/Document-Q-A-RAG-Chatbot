@@ -1,6 +1,7 @@
 from src.ingestion.chunker import ParentChildChunker, TextChunker
 from src.ingestion.multi_vector import SummaryIndexer
 from src.ingestion.pdf_loader import PDFLoader
+from src.observability.tracing import get_tracer
 
 from src.utils.logger import logger
 
@@ -46,6 +47,16 @@ class IngestionPipeline:
         return [], TextChunker(config=self.config).create_chunks(documents)
 
     def ingest_documents(self, documents):
+
+        with get_tracer().span("ingest", input={"pages": len(documents)}) as span:
+
+            stats = self._ingest(documents)
+
+            span.update(output=stats)
+
+        return stats
+
+    def _ingest(self, documents):
 
         parents, children = self.chunk(documents)
 

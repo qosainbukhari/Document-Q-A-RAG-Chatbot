@@ -1,4 +1,5 @@
 from src.llm.prompts import RAG_ANSWER_PROMPT
+from src.observability.tracing import get_tracer
 from src.utils.logger import logger
 
 
@@ -60,15 +61,21 @@ class RAGChain:
         # Optional: rewrites follow-ups and adds extra search queries
         self.query_transformer = query_transformer
 
+        self.tracer = get_tracer()
+
     def retrieve(self, query, history_text=""):
 
         # "What are its disadvantages?" -> "What are the disadvantages of SVMs?"
         if self.query_transformer:
 
-            transformed = self.query_transformer.transform(
-                query,
-                history_text
-            )
+            with self.tracer.span("query-transform", input=query) as span:
+
+                transformed = self.query_transformer.transform(
+                    query,
+                    history_text
+                )
+
+                span.update(output=transformed)
 
         else:
 
@@ -101,17 +108,43 @@ class RAGChain:
             question=query
         )
 
-        # Generate response
-        response = self.llm.invoke(prompt)
+        model = getattr(self.llm, "model_name", None)
 
-        # Handle response format
-        return (
-            response.content
-            if hasattr(response, "content")
-            else str(response)
-        )
+        with self.tracer.span("generation", as_type="generation",
+                              input=prompt) as span:
 
-    def generate_answer(self, query: str, return_contexts=False):
+            # Generate response
+            response = self.llm.invoke(prompt)
+
+            # Handle response format
+            answer = (
+                response.content
+                if hasattr(response, "content")
+                else str(response)
+            )
+
+            span.update(output=answer, model=model)
+
+        return answer
+
+    def generate_answer(self, query: str, return_contexts=False,
+                        session_id=None):
+
+        # One trace per question; every step below becomes a child span
+        with self.tracer.span("rag-query", input=query,
+                              session_id=session_id) as span:
+
+            result = self._generate_answer(query, return_contexts)
+
+            span.update(output={
+                "answer": result["answer"],
+                "standalone_question": result["standalone_question"],
+                "sources": result["sources"],
+            })
+
+        return result
+
+    def _generate_answer(self, query, return_contexts):
 
         try:
 

@@ -36,7 +36,8 @@ def chat(
 
         # Generate response
         response = rag_service.ask_question(
-            chat_request.question
+            chat_request.question,
+            session_id=session_id
         )
 
     except Exception as e:
