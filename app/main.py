@@ -1,4 +1,8 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI
+
+# Read GROQ_API_KEY, CHROMA_DB_DIR, ... from .env before anything else
+load_dotenv()
 
 from app.core.startup import load_models
 

@@ -1,3 +1,5 @@
+import os
+
 from src.components import build_components
 from src.config import load_config
 from src.embeddings.embedding_model import EmbeddingModel
@@ -7,9 +9,14 @@ from src.llm.conversation_memory import SessionMemoryStore
 from src.utils.logger import logger
 
 
-def load_models(app, config_path="configs/config.yaml"):
+def load_models(app, config_path=None):
 
     try:
+
+        # CONFIG_PATH in .env picks the pipeline (e.g. a naive one) without code changes
+        config_path = config_path or os.getenv("CONFIG_PATH", "configs/config.yaml")
+
+        logger.info(f"Using config: {config_path}")
 
         config = load_config(config_path)
 
