@@ -1,14 +1,12 @@
 # Every advanced technique can be switched on/off here, so naive and
 # advanced RAG can be compared (see configs/eval/ and evaluation/).
 
-# Naive chunking, used when chunking.strategy is "naive"
-chunk_size: 1000
-chunk_overlap: 200
-
 chunking:
   # naive        -> 1000-char chunks are both searched and sent to the LLM
   # parent_child -> search 300-char children, send their 1500-char parents
   strategy: parent_child
+  chunk_size: 1000          # naive
+  chunk_overlap: 200        # naive
   parent_chunk_size: 1500
   parent_chunk_overlap: 200
   child_chunk_size: 300

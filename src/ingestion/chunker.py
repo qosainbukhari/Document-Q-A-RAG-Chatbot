@@ -26,8 +26,8 @@ class TextChunker:
             with open(config_path, "r") as file:
                 config = yaml.safe_load(file)
 
-        self.chunk_size = config["chunk_size"]
-        self.chunk_overlap = config["chunk_overlap"]
+        self.chunk_size = config["chunking"]["chunk_size"]
+        self.chunk_overlap = config["chunking"]["chunk_overlap"]
 
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.chunk_size,

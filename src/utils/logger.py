@@ -1,16 +1,18 @@
 import logging
 from pathlib import Path
 
-Path('logs').mkdir(exist_ok=True)
+handlers = [logging.StreamHandler()]
 
-LOG_FILE = Path('logs/app.log')
+# Also log to logs/app.log, unless the folder is read-only (some hosts)
+try:
+    Path('logs').mkdir(exist_ok=True)
+    handlers.append(logging.FileHandler(Path('logs/app.log')))
+except OSError:
+    pass
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE),
-        logging.StreamHandler()
-    ]
+    handlers=handlers
 )
 logger = logging.getLogger(__name__)

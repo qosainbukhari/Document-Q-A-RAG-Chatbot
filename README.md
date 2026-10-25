@@ -140,7 +140,7 @@ src/
 └── observability/      tracing (optional Langfuse)
 configs/
 ├── config.yaml         default pipeline + all ON/OFF flags
-└── eval/               overrides for each experiment (naive, hybrid, rerank, advanced, ...)
+└── eval/               overrides for each experiment (naive, hybrid, rerank, advanced)
 evaluation/             eval_dataset.json, metrics.py, judges.py, run_eval.py, results/
 docs/                   ADVANCED_RAG.md, INTERVIEW_QA.md
 tests/                  pytest suite (fake embeddings / fake LLM, runs offline)
@@ -256,18 +256,26 @@ backoff when Groq returns rate-limit errors.
 
 ### Results
 
-Measured on `samples/Ml_book.pdf` (25 questions). Judge and answer model: `openai/gpt-oss-20b` on Groq.
-Each row adds one technique to the row above it.
+Measured on `samples/Ml_book.pdf` (25 questions). Each row adds one technique to the row above it.
 
-| Config | Recall@1 | Recall@2 | Recall@4 | MRR | Faithfulness | Context precision | Context recall | Retrieval latency |
-|---|---|---|---|---|---|---|---|---|
-| **naive** (1000-char chunks, dense only) | **0.96** | **1.00** | **1.00** | **0.980** | **0.952** | 0.330 | 0.984 | 38 ms |
-| **+ hybrid** (BM25 + dense, RRF) | 0.88 | 0.92 | 1.00 | 0.923 | 0.927 | **0.370** | 0.984 | 46 ms |
-| **+ rerank** (cross-encoder) | 0.80 | 0.88 | 0.96 | 0.867 | ⏳ | ⏳ | ⏳ | ~650 ms |
-| **advanced** (parent-child + hybrid + rerank + compression + rewrite) | 0.80 | 0.88 | 0.96 | 0.867 | ⏳ | ⏳ | ⏳ | ~820 ms |
+**Retrieval** (no LLM involved, so the numbers are deterministic; two runs gave identical values):
 
-⏳ = the LLM-judge run for this row is still in progress. Its retrieval numbers are final:
-retrieval involves no LLM, so it is deterministic, and two separate runs gave identical values.
+| Config | Recall@1 | Recall@2 | Recall@4 | MRR | Retrieval latency |
+|---|---|---|---|---|---|
+| **naive** (1000-char chunks, dense only) | **0.96** | **1.00** | **1.00** | **0.980** | 38 ms |
+| **+ hybrid** (BM25 + dense, RRF) | 0.88 | 0.92 | 1.00 | 0.923 | 46 ms |
+| **+ rerank** (cross-encoder) | 0.80 | 0.88 | 0.96 | 0.867 | ~650 ms |
+| **advanced** (parent-child + hybrid + rerank + compression + rewrite) | 0.80 | 0.88 | 0.96 | 0.867 | ~820 ms |
+
+**Generation** (LLM-as-judge, answer and judge model `openai/gpt-oss-20b`):
+
+| Config | Faithfulness | Context precision | Context recall |
+|---|---|---|---|
+| **naive** | **0.952** | 0.330 | 0.984 |
+| **+ hybrid** | 0.927 | **0.370** | 0.984 |
+
+To measure the other configs, run `make eval CONFIG=rerank` and `make eval CONFIG=advanced`.
+The free Groq tier allows about one full judged run per model per day.
 
 **What the numbers say (honest reading):**
 - **The test document favours naive retrieval.** It is a small lecture deck: 15 short
@@ -279,7 +287,7 @@ retrieval involves no LLM, so it is deterministic, and two separate runs gave id
 - **Reranking lowered it further.** The cross-encoder was trained on web search
   passages (MS MARCO). On slide fragments it sometimes preferred a general
   "What is ML" page over the specific slide.
-- **Context precision is low for every config.** Most answers are on one page but we
+- **Context precision is low.** Most answers are on one page but we
   always send 4 chunks, so the maximum is often 0.25–0.5. Context recall is high
   (0.98), meaning the needed facts do reach the LLM.
 - **Lesson:** advanced RAG techniques are built for large, varied corpora. Run
@@ -352,7 +360,7 @@ make test        # or: pytest -q
 > and 200,000 tokens/day for `gpt-oss-20b`. If `/chat` returns **429**, wait a moment,
 > or switch `GROQ_MODEL` in `.env` to another model, which has a separate quota.
 > A full `make eval-all` uses most of one model's daily quota.
-- Current result: 62 passed with a key; 60 passed and 2 skipped without one.
+- Current result: 63 passed with a key; 61 passed and 2 skipped without one.
 - GitHub Actions runs the suite on every push and pull request to `main`
   (CPU-only torch).
 

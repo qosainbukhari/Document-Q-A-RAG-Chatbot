@@ -1,4 +1,3 @@
-import pytest
 from langchain_core.documents import Document
 
 from src.retriever.compressor import EmbeddingCompressor, split_sentences

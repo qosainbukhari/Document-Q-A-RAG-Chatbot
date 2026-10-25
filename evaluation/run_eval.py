@@ -31,7 +31,7 @@ from src.utils.logger import logger
 RESULTS_DIR = Path("evaluation/results")
 
 # Order of rows in the summary table
-CONFIG_ORDER = ["naive", "hybrid", "rerank", "advanced", "advanced_multiquery"]
+CONFIG_ORDER = ["naive", "hybrid", "rerank", "advanced"]
 
 K_VALUES = [1, 2, 4]
 

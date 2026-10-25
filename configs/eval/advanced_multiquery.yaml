@@ -1,8 +1,0 @@
-# Full advanced + multi-query (one extra Groq call per question)
-chunking: {strategy: parent_child}
-retriever:
-  hybrid: {enabled: true}
-  rerank: {enabled: true}
-  compression: {enabled: true}
-query_transform: {rewrite: true, multi_query: true, hyde: false, decomposition: false}
-multi_vector: {enabled: false}
