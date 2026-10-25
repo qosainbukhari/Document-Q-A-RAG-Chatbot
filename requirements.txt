@@ -22,3 +22,4 @@ python-multipart
 
 pytest
 httpx
+rank_bm25

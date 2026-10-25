@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from src.ingestion.pipeline import IngestionPipeline
+from src.retriever.bm25_index import BM25Index
 from src.retriever.retriever import Retriever
 from src.vectordb.chroma_store import ChromaVectorStore
 from src.vectordb.docstore import JSONDocStore
@@ -17,6 +18,7 @@ class RAGComponents:
     vector_store: ChromaVectorStore
     vectordb: Any
     docstore: JSONDocStore
+    bm25: Optional[BM25Index]
     retriever: Retriever
     ingestion: IngestionPipeline
 
@@ -44,13 +46,29 @@ def build_components(config, embedding_model, llm, persist_directory=None):
         if persist_directory else None
     )
 
+    retriever_config = config["retriever"]
+
+    # BM25 lives in memory: rebuild it from the docstore's chunks now,
+    # and again after every upload
+    bm25 = None
+    on_indexed = []
+
+    if retriever_config.get("hybrid", {}).get("enabled", False):
+
+        bm25 = BM25Index(docstore.all_children())
+
+        on_indexed.append(lambda: bm25.rebuild(docstore.all_children()))
+
     retriever = Retriever(
         vectordb,
         config=config,
-        docstore=docstore if strategy == "parent_child" else None
+        docstore=docstore if strategy == "parent_child" else None,
+        bm25=bm25
     )
 
-    ingestion = IngestionPipeline(config, vector_store, vectordb, docstore)
+    ingestion = IngestionPipeline(
+        config, vector_store, vectordb, docstore, on_indexed=on_indexed
+    )
 
     return RAGComponents(
         config=config,
@@ -59,6 +77,7 @@ def build_components(config, embedding_model, llm, persist_directory=None):
         vector_store=vector_store,
         vectordb=vectordb,
         docstore=docstore,
+        bm25=bm25,
         retriever=retriever,
         ingestion=ingestion,
     )

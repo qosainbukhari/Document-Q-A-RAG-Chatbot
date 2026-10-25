@@ -18,6 +18,10 @@ retriever:
   top_k: 4          # chunks sent to the LLM
   candidates: 20    # chunks fetched from search before narrowing to top_k
 
+  hybrid:
+    enabled: true   # dense (embeddings) + sparse (BM25 keywords), fused with RRF
+    rrf_k: 60       # RRF constant: score = sum 1 / (rrf_k + rank)
+
 memory:
   window_size: 5
   max_sessions: 1000

@@ -9,12 +9,16 @@ class IngestionPipeline:
     # PDF -> pages -> chunks -> (Chroma + docstore).
     # The API, the evaluation script and the tests all ingest through here.
 
-    def __init__(self, config, vector_store, vectordb, docstore):
+    def __init__(self, config, vector_store, vectordb, docstore,
+                 on_indexed=None):
 
         self.config = config
         self.vector_store = vector_store
         self.vectordb = vectordb
         self.docstore = docstore
+
+        # Called after every ingest, e.g. to rebuild the BM25 index
+        self.on_indexed = on_indexed or []
 
         self.strategy = config["chunking"]["strategy"]
 
@@ -41,6 +45,9 @@ class IngestionPipeline:
                 [p for p in parents if p.metadata.get("source") == source],
                 [c for c in children if c.metadata.get("source") == source]
             )
+
+        for callback in self.on_indexed:
+            callback()
 
         logger.info(
             f"Ingested {len(documents)} pages: "

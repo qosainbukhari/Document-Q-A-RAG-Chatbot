@@ -1,11 +1,12 @@
 from src.config import DEFAULT_CONFIG_PATH, load_config
+from src.retriever.fusion import reciprocal_rank_fusion
 from src.utils.logger import logger
 
 
 class Retriever:
 
     def __init__(self, vectordb, config_path=DEFAULT_CONFIG_PATH,
-                 config=None, docstore=None):
+                 config=None, docstore=None, bm25=None):
 
         self.vectordb = vectordb
 
@@ -16,13 +17,30 @@ class Retriever:
         self.top_k = settings["top_k"]
         self.candidates = settings.get("candidates", self.top_k)
 
+        hybrid = settings.get("hybrid", {})
+
+        self.hybrid = hybrid.get("enabled", False) and bm25 is not None
+        self.rrf_k = hybrid.get("rrf_k", 60)
+
         # Only needed for parent-child chunking
         self.docstore = docstore
+
+        # Only needed for hybrid search
+        self.bm25 = bm25
 
     def search(self, query):
 
         # Ranked list of indexed (child) chunks for one query
-        return self.vectordb.similarity_search(query, k=self.candidates)
+        dense = self.vectordb.similarity_search(query, k=self.candidates)
+
+        if not self.hybrid:
+            return dense
+
+        sparse = self.bm25.search(query, k=self.candidates)
+
+        fused = reciprocal_rank_fusion([dense, sparse], k=self.rrf_k)
+
+        return [doc for doc, _ in fused[:self.candidates]]
 
     def to_parents(self, chunks):
 
