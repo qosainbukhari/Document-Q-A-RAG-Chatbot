@@ -80,3 +80,16 @@ together answer it. If it is already simple, return just the question.
 Return ONLY the sub-questions, one per line, no numbering.
 
 Question: {question}"""
+
+
+# ---------- Multi-vector indexing (one call per parent chunk at upload) ----------
+
+CHUNK_SUMMARY_PROMPT = """
+Summarise the following passage in 2-3 sentences. Mention the main
+concepts and terms it covers, so the summary can be used to find it.
+Return ONLY the summary.
+
+Passage:
+{text}
+
+Summary:"""

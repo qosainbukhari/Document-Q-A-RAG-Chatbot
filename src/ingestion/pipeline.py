@@ -1,4 +1,5 @@
 from src.ingestion.chunker import ParentChildChunker, TextChunker
+from src.ingestion.multi_vector import SummaryIndexer
 from src.ingestion.pdf_loader import PDFLoader
 
 from src.utils.logger import logger
@@ -10,7 +11,7 @@ class IngestionPipeline:
     # The API, the evaluation script and the tests all ingest through here.
 
     def __init__(self, config, vector_store, vectordb, docstore,
-                 on_indexed=None):
+                 on_indexed=None, llm=None):
 
         self.config = config
         self.vector_store = vector_store
@@ -21,6 +22,20 @@ class IngestionPipeline:
         self.on_indexed = on_indexed or []
 
         self.strategy = config["chunking"]["strategy"]
+
+        multi_vector = config.get("multi_vector", {})
+
+        # Summaries point to parents, so they only make sense with parent_child
+        self.summary_indexer = None
+
+        if multi_vector.get("enabled", False):
+
+            if self.strategy != "parent_child" or llm is None:
+                logger.warning("multi_vector needs parent_child chunking and an LLM; skipped")
+            else:
+                self.summary_indexer = SummaryIndexer(
+                    llm, sleep_seconds=multi_vector.get("sleep_seconds", 2.0)
+                )
 
     def chunk(self, documents):
 
@@ -33,6 +48,10 @@ class IngestionPipeline:
     def ingest_documents(self, documents):
 
         parents, children = self.chunk(documents)
+
+        if self.summary_indexer:
+            # Summaries are searched like children and map to the same parents
+            children = children + self.summary_indexer.summarise(parents)
 
         stored = self.vector_store.add_chunks(self.vectordb, children)
 

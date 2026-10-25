@@ -31,6 +31,13 @@ retriever:
     similarity_threshold: 0.3   # cosine similarity, MiniLM embeddings
     min_sentences: 2            # never shrink a chunk below this
 
+# Index an LLM summary of every parent as an extra vector.
+# Costs one Groq call PER PARENT CHUNK at upload: a 100-page PDF can mean
+# 200+ calls, which quickly hits the free tier limits. OFF by default.
+multi_vector:
+  enabled: false
+  sleep_seconds: 2.0     # pause between summary calls (rate limits)
+
 # Each technique below costs one extra Groq call per question
 query_transform:
   rewrite: true          # follow-up -> standalone question (only if there is history)

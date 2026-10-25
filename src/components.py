@@ -99,7 +99,8 @@ def build_components(config, embedding_model, llm, persist_directory=None,
     query_transformer = QueryTransformer(llm, config)
 
     ingestion = IngestionPipeline(
-        config, vector_store, vectordb, docstore, on_indexed=on_indexed
+        config, vector_store, vectordb, docstore, on_indexed=on_indexed,
+        llm=llm
     )
 
     return RAGComponents(
