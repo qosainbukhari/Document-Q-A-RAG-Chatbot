@@ -26,3 +26,28 @@ def call_with_retry(llm, prompt, retries=5, base_delay=5.0):
             logger.warning(f"LLM call failed ({e}); retrying in {delay:.0f}s")
 
             time.sleep(delay)
+
+
+class RetryingLLM:
+
+    # Wraps any LLM so every .invoke() retries on rate limits.
+    # Used by the evaluation, which makes many calls in a row.
+
+    def __init__(self, llm, retries=5, base_delay=5.0):
+
+        self.llm = llm
+        self.retries = retries
+        self.base_delay = base_delay
+
+    def invoke(self, prompt):
+
+        return LLMText(call_with_retry(
+            self.llm, prompt, self.retries, self.base_delay
+        ))
+
+
+class LLMText:
+
+    # Same shape as a LangChain message: the text is in .content
+    def __init__(self, content):
+        self.content = content

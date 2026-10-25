@@ -1,0 +1,8 @@
+# Naive + hybrid search + cross-encoder reranking
+chunking: {strategy: naive}
+retriever:
+  hybrid: {enabled: true}
+  rerank: {enabled: true}
+  compression: {enabled: false}
+query_transform: {rewrite: false, multi_query: false, hyde: false, decomposition: false}
+multi_vector: {enabled: false}

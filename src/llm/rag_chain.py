@@ -60,6 +60,57 @@ class RAGChain:
         # Optional: rewrites follow-ups and adds extra search queries
         self.query_transformer = query_transformer
 
+    def retrieve(self, query, history_text=""):
+
+        # "What are its disadvantages?" -> "What are the disadvantages of SVMs?"
+        if self.query_transformer:
+
+            transformed = self.query_transformer.transform(
+                query,
+                history_text
+            )
+
+        else:
+
+            transformed = {
+                "standalone_question": query,
+                "search_queries": [query]
+            }
+
+        documents = self.retriever.retrieve(
+            transformed["standalone_question"],
+            search_queries=transformed["search_queries"]
+        )
+
+        return transformed["standalone_question"], documents
+
+    def answer(self, query, documents, history_text=""):
+
+        # Handle empty retrieval
+        if not documents:
+
+            logger.warning(
+                "No relevant documents retrieved"
+            )
+
+            return NO_ANSWER
+
+        prompt = RAG_ANSWER_PROMPT.format(
+            history=history_text,
+            context=format_context(documents),
+            question=query
+        )
+
+        # Generate response
+        response = self.llm.invoke(prompt)
+
+        # Handle response format
+        return (
+            response.content
+            if hasattr(response, "content")
+            else str(response)
+        )
+
     def generate_answer(self, query: str, return_contexts=False):
 
         try:
@@ -73,62 +124,12 @@ class RAGChain:
                     self.memory.get_history()
                 )
 
-            # "What are its disadvantages?" -> "What are the disadvantages of SVMs?"
-            if self.query_transformer:
+            standalone, retrieved_docs = self.retrieve(query, history_text)
 
-                transformed = self.query_transformer.transform(
-                    query,
-                    history_text
-                )
+            answer = self.answer(query, retrieved_docs, history_text)
 
-            else:
-
-                transformed = {
-                    "standalone_question": query,
-                    "search_queries": [query]
-                }
-
-            standalone = transformed["standalone_question"]
-
-            # Retrieve relevant chunks
-            retrieved_docs = self.retriever.retrieve(
-                standalone,
-                search_queries=transformed["search_queries"]
-            )
-
-            # Handle empty retrieval
-            if not retrieved_docs:
-
-                logger.warning(
-                    "No relevant documents retrieved"
-                )
-
-                return {
-                    "question": query,
-                    "standalone_question": standalone,
-                    "answer": NO_ANSWER,
-                    "sources": [],
-                    **({"contexts": []} if return_contexts else {})
-                }
-
-            prompt = RAG_ANSWER_PROMPT.format(
-                history=history_text,
-                context=format_context(retrieved_docs),
-                question=query
-            )
-
-            # Generate response
-            response = self.llm.invoke(prompt)
-
-            # Handle response format
-            answer = (
-                response.content
-                if hasattr(response, "content")
-                else str(response)
-            )
-
-            # Save conversation
-            if self.memory:
+            # Save conversation (but not "I don't know" from an empty search)
+            if self.memory and retrieved_docs:
 
                 self.memory.save_context(
                     query,

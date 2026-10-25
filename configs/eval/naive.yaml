@@ -1,0 +1,8 @@
+# Naive baseline: 1000-char chunks, dense search only, nothing else
+chunking: {strategy: naive}
+retriever:
+  hybrid: {enabled: false}
+  rerank: {enabled: false}
+  compression: {enabled: false}
+query_transform: {rewrite: false, multi_query: false, hyde: false, decomposition: false}
+multi_vector: {enabled: false}

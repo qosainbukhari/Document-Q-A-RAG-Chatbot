@@ -93,3 +93,54 @@ Passage:
 {text}
 
 Summary:"""
+
+
+# ---------- Evaluation: LLM-as-judge (used by evaluation/judges.py) ----------
+# Each judge returns a JSON list of yes/no verdicts; Python computes the score.
+# Literal braces are doubled ({{ }}) because of str.format().
+
+FAITHFULNESS_PROMPT = """
+You check an ANSWER for hallucinations against a CONTEXT.
+1. Split the ANSWER into short, separate factual claims.
+2. For each claim, decide if the CONTEXT directly supports it.
+Ignore page numbers and phrases like "according to the document".
+
+CONTEXT:
+{contexts}
+
+ANSWER:
+{answer}
+
+Return ONLY JSON in this format:
+{{"claims": [{{"claim": "...", "supported": true}}]}}"""
+
+
+CONTEXT_PRECISION_PROMPT = """
+Below is a QUESTION and {n} numbered CONTEXT chunks.
+For each chunk, in order, decide if it contains information that helps
+answer the QUESTION.
+
+QUESTION:
+{question}
+
+CONTEXT:
+{contexts}
+
+Return ONLY JSON with exactly {n} booleans, one per chunk, in order:
+{{"relevant": [true, false]}}"""
+
+
+CONTEXT_RECALL_PROMPT = """
+You check whether a CONTEXT contains everything a REFERENCE ANSWER says.
+1. Split the REFERENCE ANSWER into short, separate statements.
+2. For each statement, decide if it can be found in (or directly
+   inferred from) the CONTEXT.
+
+CONTEXT:
+{contexts}
+
+REFERENCE ANSWER:
+{reference}
+
+Return ONLY JSON in this format:
+{{"statements": [{{"statement": "...", "in_context": true}}]}}"""

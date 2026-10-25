@@ -1,0 +1,10 @@
+# Full advanced pipeline = the defaults in configs/config.yaml:
+# parent-child + hybrid + rerank + compression + query rewriting.
+# (Rewriting makes no LLM call here: eval questions have no chat history.)
+chunking: {strategy: parent_child}
+retriever:
+  hybrid: {enabled: true}
+  rerank: {enabled: true}
+  compression: {enabled: true}
+query_transform: {rewrite: true, multi_query: false, hyde: false, decomposition: false}
+multi_vector: {enabled: false}

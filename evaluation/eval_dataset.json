@@ -1,0 +1,131 @@
+{
+  "document": "test/Ml_book.pdf",
+  "note": "Page numbers are 1-based PDF pages, as stored in chunk metadata. Check them manually before trusting the results.",
+  "questions": [
+    {
+      "question": "Who is the instructor of the machine learning lecture?",
+      "reference_answer": "The instructor is Dr. Anum Tariq.",
+      "relevant_pages": [1]
+    },
+    {
+      "question": "What are the objectives of the lecture?",
+      "reference_answer": "To understand what machine learning is, identify real-world applications, and understand basic terminology.",
+      "relevant_pages": [2]
+    },
+    {
+      "question": "What is machine learning?",
+      "reference_answer": "Machine learning is a field of AI that enables systems to learn from data and improve their performance with experience without explicit programming, by learning patterns and relationships in the data.",
+      "relevant_pages": [3]
+    },
+    {
+      "question": "What does 'learning' mean in machine learning?",
+      "reference_answer": "Learning means recognizing and understanding the input data and taking informed decisions based on the supplied data.",
+      "relevant_pages": [3]
+    },
+    {
+      "question": "How is machine learning different from traditional programming?",
+      "reference_answer": "In traditional programming, rules and data produce the output. In machine learning, data and the expected output are used to learn the rules (the model).",
+      "relevant_pages": [4]
+    },
+    {
+      "question": "Why should we use machine learning?",
+      "reference_answer": "Because it handles large data, adapts to new patterns, reduces manual effort, improves decision making, enables automation, improves accuracy and scales well.",
+      "relevant_pages": [6]
+    },
+    {
+      "question": "What is the purpose of machine learning?",
+      "reference_answer": "Its purpose is not to build an automated duplicate of intelligent behaviour but to use the power of computers to complement and supplement human intelligence.",
+      "relevant_pages": [7]
+    },
+    {
+      "question": "How can machine learning programs go beyond human perception?",
+      "reference_answer": "They can scan and process huge databases and detect patterns that are beyond the scope of human perception.",
+      "relevant_pages": [7]
+    },
+    {
+      "question": "In which fields are machine learning algorithms applied?",
+      "reference_answer": "Data mining, fraud detection, financial modelling, medical diagnosis and bioinformatics, robotics and autonomous vehicles, vision processing, language processing, pattern recognition, games and expert systems, and forecasting such as stock market trends and weather.",
+      "relevant_pages": [8]
+    },
+    {
+      "question": "Give some real-world examples of machine learning applications.",
+      "reference_answer": "Spam email detection, Netflix/YouTube recommendations, fraud detection in banking, medical diagnosis and self-driving cars.",
+      "relevant_pages": [9, 8]
+    },
+    {
+      "question": "Can machine learning be used to forecast the weather or stock markets?",
+      "reference_answer": "Yes, forecasting things like stock market trends and weather is listed as an application of machine learning.",
+      "relevant_pages": [8]
+    },
+    {
+      "question": "What is a dataset?",
+      "reference_answer": "A dataset is the entire collection of data used for the learning process.",
+      "relevant_pages": [17]
+    },
+    {
+      "question": "What is a feature in machine learning?",
+      "reference_answer": "A feature (x) is an individual measurable property or characteristic of the data, for example square footage, number of rooms or zip code when predicting house prices.",
+      "relevant_pages": [17]
+    },
+    {
+      "question": "What is the target or label?",
+      "reference_answer": "The target or label (y) is the specific output we are trying to predict, for example the actual price of a house.",
+      "relevant_pages": [17]
+    },
+    {
+      "question": "What is an observation or example in a dataset?",
+      "reference_answer": "An observation is a single row in the dataset containing a specific set of features and its corresponding label.",
+      "relevant_pages": [17]
+    },
+    {
+      "question": "What is a model?",
+      "reference_answer": "A model is the specific mathematical function or 'engine' produced after an algorithm has finished training on the data.",
+      "relevant_pages": [17]
+    },
+    {
+      "question": "What is the training set used for?",
+      "reference_answer": "The training set is used to learn patterns; its observations form the experience the algorithm uses to learn.",
+      "relevant_pages": [18]
+    },
+    {
+      "question": "What is the test set used for?",
+      "reference_answer": "The test set is a set of observations used to evaluate the performance of the model using a performance metric.",
+      "relevant_pages": [18]
+    },
+    {
+      "question": "Why should no training observations be included in the test set?",
+      "reference_answer": "Because the test set must evaluate the model on unseen data; including training observations would reward memorization instead of measuring generalization.",
+      "relevant_pages": [18]
+    },
+    {
+      "question": "What is overfitting?",
+      "reference_answer": "Overfitting is when a model memorizes the training data, including noise or coincidental structure, and therefore performs poorly on new data. It is linked to high variance and poor generalization.",
+      "relevant_pages": [19, 22]
+    },
+    {
+      "question": "Why does an overfitted model fail on new examples?",
+      "reference_answer": "Because by learning an overly complex model it memorizes relations that are noise or coincidence; it predicts the training set accurately but fails to predict the response variable for new examples.",
+      "relevant_pages": [19]
+    },
+    {
+      "question": "What is underfitting?",
+      "reference_answer": "Underfitting is when a model is too simple to learn the patterns in the data, so it cannot capture relationships and makes large errors even on the training data.",
+      "relevant_pages": [20]
+    },
+    {
+      "question": "What is a validation set and what is it used for?",
+      "reference_answer": "A validation (hold-out) set is a third set of observations, besides training and test data, used to tune hyperparameters, the variables that control how the model is learned.",
+      "relevant_pages": [21]
+    },
+    {
+      "question": "How is data commonly split into training, validation and test sets?",
+      "reference_answer": "It is common to allocate 50 percent or more of the data to the training set, 25 percent to the test set and the remainder to the validation set; there are no strict requirements for the sizes.",
+      "relevant_pages": [21]
+    },
+    {
+      "question": "What are the main challenges in machine learning?",
+      "reference_answer": "Data quality issues (poor or noisy data leads to wrong predictions), overfitting, computational cost (high processing power and time, e.g. GPUs), and interpretability (hard to understand how complex models make decisions).",
+      "relevant_pages": [22]
+    }
+  ]
+}
