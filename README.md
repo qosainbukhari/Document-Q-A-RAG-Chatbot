@@ -256,7 +256,38 @@ backoff when Groq returns rate-limit errors.
 
 ### Results
 
-<!-- EVAL_RESULTS -->
+Measured on `samples/Ml_book.pdf` (25 questions). Judge and answer model: `openai/gpt-oss-20b` on Groq.
+Each row adds one technique to the row above it.
+
+| Config | Recall@1 | Recall@2 | Recall@4 | MRR | Faithfulness | Context precision | Context recall | Retrieval latency |
+|---|---|---|---|---|---|---|---|---|
+| **naive** (1000-char chunks, dense only) | **0.96** | **1.00** | **1.00** | **0.980** | **0.952** | 0.330 | 0.984 | 38 ms |
+| **+ hybrid** (BM25 + dense, RRF) | 0.88 | 0.92 | 1.00 | 0.923 | 0.927 | **0.370** | 0.984 | 46 ms |
+| **+ rerank** (cross-encoder) | 0.80 | 0.88 | 0.96 | 0.867 | ⏳ | ⏳ | ⏳ | ~650 ms |
+| **advanced** (parent-child + hybrid + rerank + compression + rewrite) | 0.80 | 0.88 | 0.96 | 0.867 | ⏳ | ⏳ | ⏳ | ~820 ms |
+
+⏳ = the LLM-judge run for this row is still in progress. Its retrieval numbers are final:
+retrieval involves no LLM, so it is deterministic, and two separate runs gave identical values.
+
+**What the numbers say (honest reading):**
+- **The test document favours naive retrieval.** It is a small lecture deck: 15 short
+  text pages that almost all contain the words "machine learning". Plain dense search
+  already puts the right page first 96% of the time.
+- **Hybrid search lowered top-1 accuracy.** Keyword overlap is everywhere in this deck,
+  so BM25's ranking is noisy, and RRF gives that noisy list equal weight with the
+  dense ranking.
+- **Reranking lowered it further.** The cross-encoder was trained on web search
+  passages (MS MARCO). On slide fragments it sometimes preferred a general
+  "What is ML" page over the specific slide.
+- **Context precision is low for every config.** Most answers are on one page but we
+  always send 4 chunks, so the maximum is often 0.25–0.5. Context recall is high
+  (0.98), meaning the needed facts do reach the LLM.
+- **Lesson:** advanced RAG techniques are built for large, varied corpora. Run
+  `make eval-all` on *your* documents before deciding which flags to keep ON. That is
+  why every technique is a config switch.
+
+Full per-question results are in `evaluation/results/`. These numbers replace the
+earlier unverified "85% / 90%" claim.
 
 ---
 

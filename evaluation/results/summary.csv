@@ -1,0 +1,3 @@
+config,questions,recall@1,recall@2,recall@4,mrr,faithfulness,context_precision,context_recall,retrieval_ms
+naive,25,0.96,1.0,1.0,0.98,0.952,0.33,0.984,38
+hybrid,25,0.88,0.92,1.0,0.923,0.927,0.37,0.984,46

@@ -1,0 +1,105 @@
+question,relevant_pages,retrieved_pages,recall@1,recall@2,recall@4,mrr,retrieval_ms,answer,faithfulness,context_precision,context_recall
+Who is the instructor of the machine learning lecture?,[1],"[1, 2, 3, 7]",1.0,1.0,1.0,1.0,29,The instructor of the machine learning lecture is Dr. Anum Tariq.,1.0,0.25,1.0
+What are the objectives of the lecture?,[2],"[2, 1, 19, 18]",1.0,1.0,1.0,1.0,38,"The lecture’s objectives (as listed on page 2 of the material) are:
+
+- Understand what Machine Learning is  
+- Identify real‑world applications  
+- Understand basic terminology",1.0,0.25,1.0
+What is machine learning?,[3],"[3, 7, 6, 8]",1.0,1.0,1.0,1.0,18,"Machine learning is a field of artificial intelligence that enables systems to learn from data, improving their performance without explicit programming. It involves programming systems to automatically recognize patterns and relationships in input data, and then make informed decisions based on that data (Source: Ml_book.pdf, Page 3).",1.0,0.25,1.0
+What does 'learning' mean in machine learning?,[3],"[3, 7, 2, 17]",1.0,1.0,1.0,1.0,32,"In the context of machine learning, **learning** refers to the system’s ability to recognize and understand patterns in the input data and use that understanding to make informed decisions or predictions. It involves the model improving its performance automatically as it is exposed to more data, without being explicitly programmed for each specific task. (See Page 3 of the textbook.)",1.0,0.25,1.0
+How is machine learning different from traditional programming?,[4],"[4, 3, 6, 7]",1.0,1.0,1.0,1.0,22,"Machine learning differs from traditional programming in how it creates the rules that drive a system’s behavior.
+
+| Aspect | Traditional Programming | Machine Learning |
+|--------|------------------------|-----------------|
+| **Source of rules** | Explicitly written by a programmer (Rules + Data → Output) | Learned automatically from data (Data + Output → Rules) |
+| **Programming effort** | Requires the developer to encode every decision rule | Requires only data and desired outcomes; the model learns the rules itself |
+| **Adaptability** | Fixed rules; changing behavior needs new code | Model can adapt to new patterns by retraining on fresh data |
+| **Focus** | Writing deterministic logic | Learning patterns and relationships from experience |
+
+(See page 4 for the direct comparison, and page 3 for the broader definition of ML.)",0.8888888888888888,0.5,1.0
+Why should we use machine learning?,[6],"[6, 7, 8, 3]",1.0,1.0,1.0,1.0,278,"Machine learning is useful because it gives computers the ability to:
+
+* **Handle large volumes of data** – it can process and learn from datasets that would be impossible for a human to analyze manually【Ml_book.pdf, Page 6】.  
+* **Adapt to new patterns** – ML models update their knowledge when new data arrive, keeping performance high over time【Ml_book.pdf, Page 6】.  
+* **Reduce manual effort** – routine or repetitive tasks are automated, freeing humans for higher‑level work【Ml_book.pdf, Page 6】.  
+* **Improve decision making** – by uncovering hidden relationships in data, ML supports more accurate and timely decisions【Ml_book.pdf, Page 6】.  
+* **Provide automation** – many processes can run without human intervention once the model is trained【Ml_book.pdf, Page 6】.  
+* **Increase accuracy** – predictive models often outperform traditional rule‑based systems in many domains【Ml_book.pdf, Page 6】.  
+* **Scale easily** – the same model can be applied to new, larger datasets without redesigning the entire system【Ml_book.pdf, Page 6】.  
+
+Beyond these technical benefits, the book emphasizes that the real purpose of ML is to **complement and supplement human intelligence**. Machine‑learning programs can scan huge databases and detect patterns that lie outside human perception, enabling smarter, data‑driven solutions in fields such as finance, medicine, robotics, and more【Ml_book.pdf, Page 7】.",1.0,1.0,1.0
+What is the purpose of machine learning?,[7],"[7, 3, 6, 8]",1.0,1.0,1.0,1.0,29,"The purpose of machine learning is to use computers to **complement and supplement human intelligence**.  
+Rather than trying to duplicate human thought, machine‑learning systems scan and process large databases to detect patterns that would be beyond the scope of human perception. (See Ml_book.pdf, page 7)",1.0,0.5,1.0
+How can machine learning programs go beyond human perception?,[7],"[7, 6, 2, 3]",1.0,1.0,1.0,1.0,29,"Machine‑learning programs can scan and process huge databases, detecting patterns that are beyond the scope of human perception【Ml_book.pdf, Page 7】.",1.0,0.25,1.0
+In which fields are machine learning algorithms applied?,[8],"[8, 3, 7, 2]",1.0,1.0,1.0,1.0,21,"Machine‑learning algorithms are used in a wide variety of fields, including:
+
+- **Data mining**  
+- **Fraud detection**  
+- **Financial modelling**  
+- **Medical diagnosis and bioinformatics**  
+- **Robotics and autonomous vehicles**  
+- **Vision processing**  
+- **Language processing**  
+- **Pattern recognition**  
+- **Games and expert systems**  
+- **Forecasting (e.g., stock‑market trends, weather)**  
+
+These applications illustrate how ML helps uncover patterns and make predictions across many domains【Ml_book.pdf, page 8】.",1.0,0.25,1.0
+Give some real-world examples of machine learning applications.,"[9, 8]","[8, 2, 7, 23]",1.0,1.0,1.0,1.0,28,"Real‑world examples of machine learning applications include:
+
+- **Data mining** – extracting useful patterns from large datasets.  
+- **Fraud detection** – spotting unusual transactions in banking or e‑commerce.  
+- **Financial modelling** – predicting market movements or credit risk.  
+- **Medical diagnosis and bioinformatics** – interpreting imaging or genomic data.  
+- **Robotics and autonomous vehicles** – enabling self‑driving cars and robotic navigation.  
+- **Vision processing** – image and video recognition for security or retail.  
+- **Language processing** – natural‑language understanding in chatbots or translation tools.  
+- **Pattern recognition** – identifying recurring sequences in sensor data.  
+- **Games and expert systems** – AI that learns strategies or provides expert advice.  
+- **Forecasting** – predicting stock‑market trends, weather, or other time‑series events.  
+
+These examples illustrate the breadth of ML’s impact across many industries【Ml_book.pdf Page 8】.",1.0,0.25,0.6
+Can machine learning be used to forecast the weather or stock markets?,[8],"[8, 3, 7, 6]",1.0,1.0,1.0,1.0,20,"Yes. The book lists **forecasting stock‑market trends and weather** as direct applications of machine learning (see page 8). Machine‑learning models can scan large datasets, detect patterns beyond human perception, and generate predictions for these domains.",0.5,0.25,1.0
+What is a dataset?,[17],"[17, 21, 18, 3]",1.0,1.0,1.0,1.0,18,"A dataset is **the entire collection of data used for the learning process**. It contains all the observations (rows) that the machine‑learning algorithm will see, each of which includes a set of features (x) and, for supervised tasks, a target/label (y).  
+
+*Source: Ml_book.pdf, page 17*",1.0,0.25,1.0
+What is a feature in machine learning?,[17],"[17, 7, 3, 8]",1.0,1.0,1.0,1.0,29,"A **feature** (often denoted \(x\)) is an individual measurable property or characteristic of the data.  
+Examples include square footage, number of rooms, or zip code in a house‑pricing dataset【Ml_book.pdf, Page 17】.",1.0,0.25,1.0
+What is the target or label?,[17],"[17, 2, 1, 19]",1.0,1.0,1.0,1.0,26,"**Target / Label (y)**  
+The target or label is the specific output we are trying to predict. For example, in a house‑pricing problem it would be the actual price of the house. (Source: Ml_book.pdf, page 17)",1.0,0.25,1.0
+What is an observation or example in a dataset?,[17],"[17, 18, 21, 2]",1.0,1.0,1.0,1.0,85,"An observation (or example) is a single row in the dataset that contains a specific set of features along with its corresponding target/label【Ml_book.pdf, Page 17】.",1.0,0.25,1.0
+What is a model?,[17],"[17, 18, 19, 2]",1.0,1.0,1.0,1.0,34,"A **model** is the specific mathematical function or “engine” that is produced after an algorithm has finished training on your data【Ml_book.pdf, Page 17】. It is the learned mapping from input features (x) to the target/label (y) that the algorithm will use to make predictions on new data.",1.0,0.25,1.0
+What is the training set used for?,[18],"[18, 21, 17, 19]",1.0,1.0,1.0,1.0,18,"The training set is used to **teach the model** – it provides the observations that the algorithm uses to learn patterns and build its internal representation. In other words, it is the data on which the model is trained to capture relationships between features and the target. (Source: Ml_book.pdf, page 18)",1.0,0.25,1.0
+What is the test set used for?,[18],"[18, 21, 17, 19]",1.0,1.0,1.0,1.0,24,"The test set is used to **evaluate the model’s performance** on data that were not seen during training. It provides an estimate of how well the learned patterns generalize to new observations, using a chosen performance metric. Importantly, the test set must contain no observations from the training set to avoid bias from memorization【Ml_book.pdf, Page 18】.",1.0,0.25,1.0
+Why should no training observations be included in the test set?,[18],"[18, 21, 19, 17]",1.0,1.0,1.0,1.0,22,"No training observations should appear in the test set because the test set’s sole purpose is to evaluate how well the model **generalizes** to data it has never seen before.  
+
+- The training set is where the algorithm learns patterns (Page 18).  
+- If the test set contains the same observations, the model’s performance will be inflated by memorization rather than true predictive ability (Page 19).  
+- This would mask over‑fitting, making it appear that the model works well when it may actually perform poorly on new data (Page 18, 19).  
+
+Thus, keeping training and test sets disjoint ensures an honest assessment of the model’s real‑world performance.",1.0,0.5,1.0
+What is overfitting?,"[19, 22]","[20, 19, 22, 6]",0.0,1.0,1.0,0.5,26,"Overfitting occurs when a machine‑learning model **memorizes** the training data instead of learning the underlying patterns.  
+- The model fits the training set almost perfectly, often achieving 100 % accuracy, but it **fails to predict new, unseen data** (poor test performance).  
+- Because it has learned noise or random coincidences, it is highly sensitive to small variations in the data and has **high variance**.  
+- In other words, the model is too complex for the data, leading to poor generalization on fresh examples【Ml_book.pdf, Page 19】.",0.75,0.5,1.0
+Why does an overfitted model fail on new examples?,[19],"[19, 20, 22, 6]",1.0,1.0,1.0,1.0,21,"An over‑fitted model memorizes the training data instead of learning the underlying patterns.  
+Because it has essentially “learned” the noise, coincidences, or idiosyncratic quirks of the training set, it has high variance—its predictions change a lot with small data variations. When a new example that differs from the memorized cases is presented, the model’s internal rules no longer match, so it produces inaccurate predictions. In short, over‑fitting causes a model to perform well on the training data but fail to generalize to unseen data (see page 19 of *Ml_book.pdf*).",1.0,0.5,1.0
+What is underfitting?,[20],"[20, 19, 22, 6]",1.0,1.0,1.0,1.0,21,"Underfitting occurs when a machine‑learning model is too simple to capture the underlying patterns in the data. As a result, it cannot learn the relationships between inputs and outputs, leading to large errors even on the training set. The model struggles to generalize, making it perform poorly on new, unseen data. (Source: Ml_book.pdf, page 20)",0.6666666666666666,0.25,1.0
+What is a validation set and what is it used for?,[21],"[21, 18, 17, 19]",1.0,1.0,1.0,1.0,29,"A **validation set** is a third group of observations that you keep separate from the training and test data. It is used to **tune hyper‑parameters**—the settings that control how the model is learned (e.g., learning rate, number of layers, regularization strength). By evaluating the model on this hold‑out set, you can adjust those hyper‑parameters to improve performance before finally testing the model on the unseen test set. Typical data splits might allocate about 50 % or more to training, 25 % to test, and the remaining portion to validation, but the exact proportions can vary with the amount of data available (see page 21).",1.0,0.25,1.0
+"How is data commonly split into training, validation and test sets?",[21],"[21, 18, 17, 19]",1.0,1.0,1.0,1.0,28,"Data is usually divided into three non‑overlapping sets:
+
+| Set | Typical proportion | Purpose |
+|-----|--------------------|---------|
+| **Training** | 50 % or more | Learns the model parameters. |
+| **Test** | ≈ 25 % | Provides an unbiased estimate of final model performance. |
+| **Validation** | Remaining (≈ 25 %) | Tunes hyper‑parameters and monitors over‑fitting. |
+
+These splits are not fixed; the exact percentages can change depending on how much data you have, but the common rule of thumb is a 50/25/25 split (training/validation/test)【Ml_book.pdf:21】.",1.0,0.25,1.0
+What are the main challenges in machine learning?,[22],"[22, 6, 7, 8]",1.0,1.0,1.0,1.0,18,"The main challenges in machine learning, as outlined in the book, are:
+
+1. **Data quality issues** – When data are missing, incorrect, or noisy, models can learn wrong patterns, leading to inaccurate predictions (e.g., a patient’s diagnosis may be wrong if their medical record is incomplete).  
+2. **Overfitting** – A model that memorizes the training data performs well on that data but poorly on unseen data. This is seen when a model achieves 100 % training accuracy yet fails on a test set.  
+3. **Computational cost** – Training sophisticated models, especially deep learning networks, requires substantial processing power and time, often necessitating GPUs.  
+4. **Interpretability** – Complex models (such as neural networks) can be opaque, making it hard to understand why a decision was made. This lack of transparency can erode user trust and complicate debugging (e.g., a loan‑rejection model that offers no clear rationale).  
+
+These points capture the principal obstacles that practitioners face when developing and deploying machine learning solutions【Ml_book.pdf, Page 22】.",1.0,0.25,1.0
