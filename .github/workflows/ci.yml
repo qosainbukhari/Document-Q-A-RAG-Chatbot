@@ -39,4 +39,4 @@ jobs:
       # GROQ_API_KEY secret is not set; everything else uses fakes.
       - name: Run Tests
         run: |
-          PYTHONPATH=. pytest -q
+          pytest -q

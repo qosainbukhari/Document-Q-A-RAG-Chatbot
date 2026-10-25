@@ -8,7 +8,7 @@ from src.vectordb.chroma_store import ChromaVectorStore
 def test_vectordb(tmp_path):
 
     loader = PDFLoader(
-        "test/Ml_book.pdf"
+        "samples/Ml_book.pdf"
     )
 
     documents = loader.load_pdf()

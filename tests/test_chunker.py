@@ -5,7 +5,7 @@ from src.ingestion.chunker import TextChunker
 def test_chunker():
 
     loader = PDFLoader(
-        "test/Ml_book.pdf"
+        "samples/Ml_book.pdf"
     )
 
     documents = loader.load_pdf()

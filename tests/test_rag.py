@@ -18,7 +18,7 @@ from src.llm.rag_chain import RAGChain
 def test_rag(tmp_path):
 
     loader = PDFLoader(
-        "test/Ml_book.pdf"
+        "samples/Ml_book.pdf"
     )
 
     documents = loader.load_pdf()

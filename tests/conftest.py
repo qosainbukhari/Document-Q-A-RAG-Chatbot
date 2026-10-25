@@ -5,7 +5,7 @@ from src.components import build_components
 from src.config import deep_merge, load_config
 
 
-PDF_PATH = "test/Ml_book.pdf"
+PDF_PATH = "samples/Ml_book.pdf"
 
 
 class FakeResponse:

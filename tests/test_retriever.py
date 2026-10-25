@@ -9,7 +9,7 @@ from src.retriever.retriever import Retriever
 def test_retriever(tmp_path):
 
     loader = PDFLoader(
-        "test/Ml_book.pdf"
+        "samples/Ml_book.pdf"
     )
 
     documents = loader.load_pdf()

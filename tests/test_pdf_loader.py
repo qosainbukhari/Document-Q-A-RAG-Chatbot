@@ -4,7 +4,7 @@ from src.ingestion.pdf_loader import PDFLoader
 
 def test_pdf_loader():
 
-    loader = PDFLoader("test/Ml_book.pdf")
+    loader = PDFLoader("samples/Ml_book.pdf")
 
     documents = loader.load_pdf()
 

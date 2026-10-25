@@ -214,7 +214,7 @@ skipped, never failing the upload.
 You cannot claim "advanced is better" without measuring. We measure **retrieval**
 and **generation** separately, because they fail differently.
 
-**Dataset:** `evaluation/eval_dataset.json` — 25 questions on `test/Ml_book.pdf`,
+**Dataset:** `evaluation/eval_dataset.json` — 25 questions on `samples/Ml_book.pdf`,
 each with a reference answer and the page(s) that contain the answer.
 
 **Retrieval metrics (pure Python, no LLM)** — `evaluation/metrics.py`

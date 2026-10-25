@@ -1,5 +1,5 @@
 {
-  "document": "test/Ml_book.pdf",
+  "document": "samples/Ml_book.pdf",
   "note": "Page numbers are 1-based PDF pages, as stored in chunk metadata. Check them manually before trusting the results.",
   "questions": [
     {

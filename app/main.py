@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
 
@@ -12,22 +14,23 @@ from app.routes.chat import router as chat_router
 from app.routes.documents import router as documents_router
 
 
-app = FastAPI(
-    title="RAG Chatbot API"
-)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
 
-
-@app.on_event("startup")
-async def startup_event():
-
+    # Startup: load models and build the RAG pipeline once
     load_models(app)
 
+    yield
 
-@app.on_event("shutdown")
-async def shutdown_event():
-
-    # Send any traces still waiting in the Langfuse buffer
+    # Shutdown: send any traces still waiting in the Langfuse buffer
     get_tracer().flush()
+
+
+app = FastAPI(
+    title="Document Q&A RAG Chatbot API",
+    description="Upload PDFs and ask questions with advanced RAG and page citations.",
+    lifespan=lifespan
+)
 
 
 @app.get("/health")
