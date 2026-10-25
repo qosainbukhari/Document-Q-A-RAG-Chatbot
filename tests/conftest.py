@@ -42,6 +42,7 @@ TEST_DEFAULTS = {
         "rerank": {"enabled": False},
         "compression": {"enabled": False},
     },
+    "query_transform": {"rewrite": False},
 }
 
 

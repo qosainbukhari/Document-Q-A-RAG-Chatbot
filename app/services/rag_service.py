@@ -12,7 +12,8 @@ class RAGService:
         self.rag_chain = RAGChain(
             components.retriever,
             components.llm,
-            memory
+            memory,
+            query_transformer=components.query_transformer
         )
 
     def ask_question(

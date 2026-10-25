@@ -1,4 +1,46 @@
+from src.llm.prompts import RAG_ANSWER_PROMPT
 from src.utils.logger import logger
+
+
+NO_ANSWER = "I don't know based on the document."
+
+
+def format_context(documents):
+
+    return "\n\n".join([
+        f"""
+Source: {doc.metadata.get("source", "Unknown")}
+Page: {doc.metadata.get("page", "N/A")}
+
+Content:
+{doc.page_content}
+"""
+        for doc in documents
+    ])
+
+
+def unique_sources(documents):
+
+    sources = []
+
+    for doc in documents:
+
+        source_info = {
+            "source": doc.metadata.get(
+                "source",
+                "Unknown"
+            ),
+            "page": doc.metadata.get(
+                "page",
+                "N/A"
+            )
+        }
+
+        if source_info not in sources:
+
+            sources.append(source_info)
+
+    return sources
 
 
 class RAGChain:
@@ -7,34 +49,20 @@ class RAGChain:
         self,
         retriever,
         llm,
-        memory=None
+        memory=None,
+        query_transformer=None
     ):
 
         self.retriever = retriever
         self.llm = llm
         self.memory = memory
 
-    def generate_answer(self, query: str):
+        # Optional: rewrites follow-ups and adds extra search queries
+        self.query_transformer = query_transformer
+
+    def generate_answer(self, query: str, return_contexts=False):
 
         try:
-
-            # Retrieve relevant chunks
-            retrieved_docs = self.retriever.retrieve(query)
-
-            # Handle empty retrieval
-            if not retrieved_docs:
-
-                logger.warning(
-                    "No relevant documents retrieved"
-                )
-
-                return {
-                    "question": query,
-                    "answer": (
-                        "I don't know based on the document."
-                    ),
-                    "sources": []
-                }
 
             # Load conversation history
             history_text = ""
@@ -45,50 +73,49 @@ class RAGChain:
                     self.memory.get_history()
                 )
 
-            # Build formatted context
-            context = "\n\n".join([
-                f"""
-Source: {doc.metadata.get("source", "Unknown")}
-Page: {doc.metadata.get("page", "N/A")}
+            # "What are its disadvantages?" -> "What are the disadvantages of SVMs?"
+            if self.query_transformer:
 
-Content:
-{doc.page_content}
-"""
-                for doc in retrieved_docs
-            ])
+                transformed = self.query_transformer.transform(
+                    query,
+                    history_text
+                )
 
-            prompt = f"""
-You are an intelligent Retrieval-Augmented Generation (RAG) assistant.
+            else:
 
-Your task is to answer the user's question using ONLY the provided context.
+                transformed = {
+                    "standalone_question": query,
+                    "search_queries": [query]
+                }
 
-Instructions:
-- Do NOT use outside knowledge.
-- If the answer is not available in the context, respond exactly with:
-  "I don't know based on the document."
-- Provide clear, accurate, and well-structured answers.
-- Explain technical concepts in simple language.
-- Include important definitions, examples, formulas, or key points when available.
-- Use chat history only for conversational continuity.
-- Avoid repeating information.
-- Keep the response professional and concise.
-- Mention source page numbers naturally when relevant.
+            standalone = transformed["standalone_question"]
 
-Chat History:
----------------------
-{history_text}
----------------------
+            # Retrieve relevant chunks
+            retrieved_docs = self.retriever.retrieve(
+                standalone,
+                search_queries=transformed["search_queries"]
+            )
 
-Context:
----------------------
-{context}
----------------------
+            # Handle empty retrieval
+            if not retrieved_docs:
 
-Question:
-{query}
+                logger.warning(
+                    "No relevant documents retrieved"
+                )
 
-Answer:
-"""
+                return {
+                    "question": query,
+                    "standalone_question": standalone,
+                    "answer": NO_ANSWER,
+                    "sources": [],
+                    **({"contexts": []} if return_contexts else {})
+                }
+
+            prompt = RAG_ANSWER_PROMPT.format(
+                history=history_text,
+                context=format_context(retrieved_docs),
+                question=query
+            )
 
             # Generate response
             response = self.llm.invoke(prompt)
@@ -112,31 +139,24 @@ Answer:
                 "Generated RAG response successfully"
             )
 
-            # Clean unique sources
-            sources = []
-
-            for doc in retrieved_docs:
-
-                source_info = {
-                    "source": doc.metadata.get(
-                        "source",
-                        "Unknown"
-                    ),
-                    "page": doc.metadata.get(
-                        "page",
-                        "N/A"
-                    )
-                }
-
-                if source_info not in sources:
-
-                    sources.append(source_info)
-
-            return {
+            result = {
                 "question": query,
+                "standalone_question": standalone,
                 "answer": answer,
-                "sources": sources
+                "sources": unique_sources(retrieved_docs)
             }
+
+            # The evaluation judges need the exact text the LLM saw
+            if return_contexts:
+
+                result["contexts"] = [
+                    doc.page_content for doc in retrieved_docs
+                ]
+                result["pages"] = [
+                    doc.metadata.get("page") for doc in retrieved_docs
+                ]
+
+            return result
 
         except Exception as e:
 

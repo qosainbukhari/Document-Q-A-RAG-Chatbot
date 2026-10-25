@@ -83,10 +83,21 @@ class Retriever:
 
         return parents
 
-    def retrieve(self, query):
+    def retrieve(self, query, search_queries=None):
 
+        # `query` is the question used for reranking and compression.
+        # `search_queries` (multi-query, HyDE, sub-questions) are each
+        # searched separately and their rankings fused with RRF.
         try:
-            chunks = self.search(query)
+            queries = search_queries or [query]
+
+            ranked_lists = [self.search(q) for q in queries]
+
+            if len(ranked_lists) == 1:
+                chunks = ranked_lists[0]
+            else:
+                fused = reciprocal_rank_fusion(ranked_lists, k=self.rrf_k)
+                chunks = [doc for doc, _ in fused[:self.candidates]]
 
             candidates = self.to_parents(chunks)
 

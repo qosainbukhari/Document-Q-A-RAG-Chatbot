@@ -31,6 +31,14 @@ retriever:
     similarity_threshold: 0.3   # cosine similarity, MiniLM embeddings
     min_sentences: 2            # never shrink a chunk below this
 
+# Each technique below costs one extra Groq call per question
+query_transform:
+  rewrite: true          # follow-up -> standalone question (only if there is history)
+  multi_query: false     # search with N rephrasings too, fuse with RRF
+  hyde: false            # search with a hypothetical answer
+  decomposition: false   # search with sub-questions
+  num_queries: 3         # N for multi_query / max sub-questions
+
 memory:
   window_size: 5
   max_sessions: 1000

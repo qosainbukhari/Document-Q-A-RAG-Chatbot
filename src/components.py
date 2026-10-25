@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from src.ingestion.pipeline import IngestionPipeline
+from src.llm.query_transformer import QueryTransformer
 from src.retriever.bm25_index import BM25Index
 from src.retriever.compressor import EmbeddingCompressor
 from src.retriever.reranker import CrossEncoderReranker
@@ -24,6 +25,7 @@ class RAGComponents:
     reranker: Optional[CrossEncoderReranker]
     compressor: Optional[EmbeddingCompressor]
     retriever: Retriever
+    query_transformer: QueryTransformer
     ingestion: IngestionPipeline
 
 
@@ -94,6 +96,8 @@ def build_components(config, embedding_model, llm, persist_directory=None,
         compressor=compressor
     )
 
+    query_transformer = QueryTransformer(llm, config)
+
     ingestion = IngestionPipeline(
         config, vector_store, vectordb, docstore, on_indexed=on_indexed
     )
@@ -109,5 +113,6 @@ def build_components(config, embedding_model, llm, persist_directory=None,
         reranker=reranker,
         compressor=compressor,
         retriever=retriever,
+        query_transformer=query_transformer,
         ingestion=ingestion,
     )
