@@ -1,346 +1,339 @@
-# 📄 Document Q&A RAG Chatbot
-
-[![CI Pipeline](https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot/actions/workflows/ci.yml/badge.svg)](https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot/actions/workflows/ci.yml)
-
-End-to-end Retrieval-Augmented Generation (RAG) chatbot that allows users to upload PDF documents and ask questions using semantic search, vector embeddings, and Groq-powered Llama 3.1.
+<h1 align="center">📄 Document Q&A RAG Chatbot</h1>
 
 <p align="center">
-  <img src="assest/pic.png" width="900"/>
+  <b>Advanced Retrieval-Augmented Generation over your PDFs, with page citations, measured with a real evaluation.</b>
 </p>
 
-## ✨ Features
+<p align="center">
+  <a href="https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot/actions/workflows/ci.yml"><img src="https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/python-3.11-blue?logo=python&logoColor=white" alt="Python 3.11">
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit">
+  <img src="https://img.shields.io/badge/LangChain-1C3C3C?logo=langchain&logoColor=white" alt="LangChain">
+  <img src="https://img.shields.io/badge/ChromaDB-vector%20store-orange" alt="ChromaDB">
+  <img src="https://img.shields.io/badge/LLM-Groq-f55036" alt="Groq">
+  <img src="https://img.shields.io/badge/tracing-Langfuse-black" alt="Langfuse">
+  <img src="https://img.shields.io/badge/docker-compose-2496ED?logo=docker&logoColor=white" alt="Docker">
+</p>
 
-✅ Upload PDF documents  
-✅ Semantic search with vector embeddings  
-✅ Grounded AI-generated answers  
-✅ Source citations with page numbers  
-✅ Conversation memory support  
-✅ Persistent ChromaDB vector database  
-✅ FastAPI backend APIs  
-✅ Streamlit frontend UI  
-✅ Dockerized full-stack setup  
-✅ Groq-powered Llama 3.1 inference  
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#config-flags">Config flags</a> ·
+  <a href="#evaluation">Evaluation</a> ·
+  <a href="docs/ADVANCED_RAG.md">How it works</a> ·
+  <a href="docs/INTERVIEW_QA.md">Interview Q&A</a>
+</p>
 
----
+Upload any PDF and ask questions about it. Answers are grounded in the document,
+with page citations. The project started as a naive RAG pipeline and was upgraded
+to an **advanced RAG** system:
 
-# 🧠 Tech Stack
+- parent-child chunking
+- hybrid BM25 + dense search with Reciprocal Rank Fusion
+- cross-encoder reranking
+- contextual compression
+- query rewriting
 
-## Backend
-- FastAPI
-- LangChain
-- ChromaDB
-- Groq API
-- Sentence Transformers
+Every technique can be switched on or off in config, and an **evaluation** measures
+whether each one actually helps. Everything runs on a CPU laptop with free tools.
 
-## Frontend
-- Streamlit
+<p align="center">
+  <img src="assets/pic.png" width="900"/>
+</p>
 
-## LLM & Embeddings
-- Llama 3.1 8B via Groq
-- all-MiniLM-L6-v2
-
-## DevOps
-- Docker
-- Docker Compose
-
----
-
-# 🏗️ System Architecture
-
-```text
-User Uploads PDF
-        ↓
-PDF Text Extraction
-        ↓
-Text Chunking
-        ↓
-Embedding Generation
-        ↓
-ChromaDB Vector Storage
-        ↓
-Semantic Retrieval
-        ↓
-Prompt + Retrieved Context
-        ↓
-Llama 3.1 8B via Groq
-        ↓
-Grounded Answer + Citations
-```
-
----
-
-# 📂 Project Structure
-
-```text
-Document-Q-A-RAG-Chatbot/
-│
-├── app/
-│   ├── core/
-│   ├── routes/
-│   ├── services/
-│   ├── main.py
-│   └── schemas.py
-│
-├── src/
-│   ├── embeddings/
-│   ├── ingestion/
-│   ├── llm/
-│   ├── retriever/
-│   ├── utils/
-│   └── vectordb/
-│
-├── configs/
-├── data/
-├── logs/
-├── models/
-├── tests/
-│
-├── streamlit_app.py
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
-```
-
----
-
-# ⚙️ Installation
-
-## 1. Clone Repository
+## Quick start
 
 ```bash
 git clone https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot.git
-
 cd Document-Q-A-RAG-Chatbot
+make install          # venv + CPU-only torch + requirements, creates .env
+# put your free Groq key in .env  →  GROQ_API_KEY=...
+make api              # terminal 1: backend  → http://localhost:8000/docs
+make ui               # terminal 2: chat UI  → http://localhost:8501
+```
+
+Or run `docker compose up --build`, and run `make help` to see all commands.
+
+## Features
+
+- Upload PDFs; re-uploading a file **replaces** it (stable chunk IDs, no duplicates)
+- Answers with **source + page citations**
+- **Per-session chat memory**, with follow-up questions rewritten into standalone ones
+- **Advanced retrieval** (each part ON/OFF in [`configs/config.yaml`](configs/config.yaml)):
+  - parent-child chunking
+  - hybrid search
+  - RRF fusion
+  - reranking
+  - compression
+  - multi-query
+  - HyDE
+  - query decomposition
+  - multi-vector summaries
+- **Evaluation**: Recall@K, MRR, faithfulness, context precision and context recall,
+  using hand-written metrics and LLM-as-judge prompts
+- Optional **Langfuse tracing** of every step, with latency per step
+- **Chat UI (Streamlit):**
+  - conversation history on screen
+  - sidebar for upload, backend status and the list of indexed PDFs
+  - page citations under every answer, and the rewritten question for follow-ups
+  - a "New chat" button that starts a fresh session
+  - clear error messages, including rate limits
+- FastAPI backend, Docker Compose, GitHub Actions CI (offline tests with fakes)
+
+📘 **How every technique works, explained simply:** [docs/ADVANCED_RAG.md](docs/ADVANCED_RAG.md)
+🎤 **Interview questions about this project:** [docs/INTERVIEW_QA.md](docs/INTERVIEW_QA.md)
+
+---
+
+## Tech Stack
+
+| Part | Tool |
+|---|---|
+| API / UI | FastAPI, Streamlit |
+| LLM | Groq API: any Groq model via `GROQ_MODEL` (`.env.example`: `openai/gpt-oss-20b`; code default `llama-3.1-8b-instant`) |
+| Embeddings | `all-MiniLM-L6-v2` (sentence-transformers, CPU) |
+| Vector DB | ChromaDB (+ JSON docstore for parent chunks) |
+| Keyword search | `rank_bm25` |
+| Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` (CPU) |
+| Tracing | Langfuse (optional) |
+| DevOps | Docker Compose, GitHub Actions, pytest |
+
+---
+
+## Architecture
+
+```text
+INGESTION  (POST /upload)
+PDF ─► pages (pypdf) ─► parent chunks (~1500 chars) ──────────────► JSON docstore
+                             └─► child chunks (~300 chars) ─┬─► MiniLM embeddings ─► ChromaDB
+                                                            └─► BM25 index (in memory, rebuilt from docstore)
+       [optional] LLM summary per parent ─► extra vector pointing to the parent (multi-vector)
+
+QUESTION  (POST /chat, per session_id)
+question + chat history
+  ─► query rewrite (Groq, only when there is history) ─► standalone question
+  ─► [optional] multi-query / HyDE / sub-questions
+  ─► dense search + BM25 search on children ─► Reciprocal Rank Fusion
+  ─► map children → unique parent chunks
+  ─► cross-encoder rerank (~20 candidates → top 4)
+  ─► compression (keep query-relevant sentences, page metadata kept)
+  ─► prompt ─► Groq LLM ─► answer + page citations
+        every step = one span in a Langfuse trace (optional)
 ```
 
 ---
 
-## 2. Create Environment Variables
+## Project Structure
 
-Create `.env`
-
-```env
-GROQ_API_KEY=your_groq_api_key
-
-GROQ_MODEL=llama-3.1-8b-instant
-
-CHROMA_DB_DIR=./models/chroma_db
-
-EMBEDDING_MODEL=all-MiniLM-L6-v2
+```text
+app/                    FastAPI: main.py, routes (upload, chat), services, schemas, startup
+src/
+├── components.py       builds the whole pipeline from the config (used by API, eval, tests)
+├── config.py           loads config.yaml + optional override file
+├── ingestion/          pdf_loader, chunker (naive + parent-child), pipeline, multi_vector
+├── embeddings/         HuggingFace embedding model
+├── vectordb/           chroma_store (stable IDs, replace-on-upload), docstore (JSON)
+├── retriever/          retriever, bm25_index, fusion (RRF), reranker, compressor
+├── llm/                groq_client, rag_chain, prompts (ALL prompts), query_transformer,
+│                       conversation_memory (per session), llm_utils (retry/backoff)
+└── observability/      tracing (optional Langfuse)
+configs/
+├── config.yaml         default pipeline + all ON/OFF flags
+└── eval/               overrides for each experiment (naive, hybrid, rerank, advanced, ...)
+evaluation/             eval_dataset.json, metrics.py, judges.py, run_eval.py, results/
+docs/                   ADVANCED_RAG.md, INTERVIEW_QA.md
+tests/                  pytest suite (fake embeddings / fake LLM, runs offline)
+samples/                Ml_book.pdf (test + evaluation document)
+assets/                 screenshot
+streamlit_app.py, Makefile, Dockerfile, docker-compose.yml, .env.example, pytest.ini
 ```
 
 ---
 
-# 🐳 Run with Docker
+## Setup
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot.git
+cd Document-Q-A-RAG-Chatbot
+
+python3.11 -m venv venv && source venv/bin/activate
+pip install torch --index-url https://download.pytorch.org/whl/cpu   # CPU-only, much smaller
+pip install -r requirements.txt
+```
+
+### 2. Environment variables
+
+```bash
+cp .env.example .env
+```
+
+Then open `.env` and set at least `GROQ_API_KEY` (free at <https://console.groq.com/keys>).
+
+| Variable | Meaning | Default |
+|---|---|---|
+| `GROQ_API_KEY` | Groq key (needed for `/chat` and the LLM judges) | — |
+| `GROQ_MODEL` | Any Groq chat model | `openai/gpt-oss-20b` in `.env.example` |
+| `EMBEDDING_MODEL` | sentence-transformers model | `all-MiniLM-L6-v2` |
+| `CHROMA_DB_DIR` | Where Chroma + docstore are saved (empty = in memory) | `models/chroma_db` |
+| `CONFIG_PATH` | Pipeline config the API loads | `configs/config.yaml` |
+| `API_URL` | Backend URL used by Streamlit | `http://localhost:8000` |
+| `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `LANGFUSE_BASE_URL` | Optional tracing | empty = off |
+
+### 3. Run
+
+```bash
+make api   # backend:  uvicorn app.main:app --port 8000
+make ui    # frontend: streamlit run streamlit_app.py
+```
+
+Or with Docker (the vector DB is kept in a volume):
 
 ```bash
 docker compose up --build
 ```
 
-Frontend:
+- Frontend: <http://localhost:8501>
+- API docs: <http://localhost:8000/docs>
+
+---
+
+## Config flags
+
+All in [`configs/config.yaml`](configs/config.yaml).
+
+| Flag | Default | What it does | Extra cost |
+|---|---|---|---|
+| `chunking.strategy` | `parent_child` | `naive` (1000-char chunks) or search 300-char children, return 1500-char parents | more vectors |
+| `retriever.top_k` / `candidates` | 4 / 20 | chunks sent to the LLM / chunks fetched before narrowing | — |
+| `retriever.hybrid.enabled` | `true` | BM25 + dense, fused with RRF (`rrf_k: 60`) | ~5 ms |
+| `retriever.rerank.enabled` | `true` | cross-encoder re-scores candidates | ~0.6 s CPU |
+| `retriever.compression.enabled` | `true` | keep sentences with similarity ≥ `similarity_threshold` | ~0.4 s CPU |
+| `query_transform.rewrite` | `true` | follow-up → standalone question (only if there is history) | 1 Groq call |
+| `query_transform.multi_query` | `false` | search with `num_queries` rephrasings too | 1 Groq call |
+| `query_transform.hyde` | `false` | search with a hypothetical answer | 1 Groq call |
+| `query_transform.decomposition` | `false` | search with sub-questions | 1 Groq call |
+| `multi_vector.enabled` | `false` | index an LLM summary per parent | 1 Groq call **per parent at upload** |
+
+The ~0.6 s and ~0.4 s figures are CPU timings from one live trace on a laptop:
+
 ```text
-http://localhost:8501
+query-transform 622 ms | search 29 ms | parent-mapping 1 ms | rerank 556 ms | compression 369 ms | generation 714 ms
 ```
 
-Backend Docs:
-```text
-http://localhost:8000/docs
-```
+To run the API with a different pipeline, set `CONFIG_PATH` in `.env`. The
+`configs/eval/*.yaml` files are *overrides*, applied on top of `config.yaml` by the eval script.
 
 ---
 
-# 📡 API Endpoints
+## Evaluation
 
-## Health Check
+**Dataset:** [`evaluation/eval_dataset.json`](evaluation/eval_dataset.json) has 25 questions
+about `samples/Ml_book.pdf`. Each question comes with a reference answer and the page(s)
+that contain the answer.
 
-```http
-GET /health
-```
-
----
-
-## Upload PDF
-
-```http
-POST /upload
-```
-
----
-
-## Ask Questions
-
-```http
-POST /chat
-```
-
-Example Request:
-
-```json
-{
-  "question": "What is clustering?"
-}
-```
-
-Example Response:
-
-```json
-{
-  "question": "What is clustering?",
-  "answer": "Clustering is the unsupervised task of grouping similar instances together.",
-  "sources": [
-    {
-      "source": "ml_book.pdf",
-      "page": 120
-    }
-  ]
-}
-```
-
----
-
-# 📊 Results
-
-Tested on 20 manual Q&A pairs across multiple PDF documents.
-
-| Metric | Result |
-|--------|--------|
-| Retrieval Accuracy | 85% |
-| Answer Faithfulness | 90% |
-| Average Response Time | 3.2s |
-| Embedding Model | all-MiniLM-L6-v2 |
-| Vector Database | ChromaDB |
-| LLM | Llama 3.1 8B via Groq |
-
----
-
-# ✅ Example Q&A
-
-## Example 1
-
-### Question
-What is self-attention?
-
-### Answer
-Self-attention, sometimes called intra-attention, is an attention mechanism relating different positions of a single sequence in order to compute a representation of the sequence.
-
-### Sources
-- `paper.pdf` — page 2
-- `paper.pdf` — page 6
-
----
-
-## Example 2
-
-### Question
-What is clustering in machine learning?
-
-### Answer
-Clustering is the unsupervised task of grouping similar instances together. The notion of similarity depends on the structure and distribution of the data.
-
-### Sources
-- `ml_book.pdf` — page 120
-
----
-
-## Example 3
-
-### Question
-What is the difference between Xavier and He initialization?
-
-### Answer
-Xavier initialization is commonly used for sigmoid and tanh activations to maintain stable gradients, while He initialization is designed for ReLU-based activations and uses larger variance to compensate for inactive neurons.
-
-### Sources
-- `ml_book.pdf` — page 94
-
----
-
-
-```markdown
-# ✅ Testing & CI
-
-This project includes automated tests using `pytest` and GitHub Actions CI.
-
-## Run Tests Locally
-
-Windows CMD:
+**Metrics:**
+- **Retrieval:** Recall@1/2/4 and MRR, computed in plain Python from page numbers.
+- **Generation:** faithfulness, context precision and context recall. These use
+  LLM-as-judge prompts: the LLM only gives yes/no verdicts per claim or chunk, and
+  Python computes the scores.
 
 ```bash
-set PYTHONPATH=.
-pytest
+python -m evaluation.run_eval --config naive              # one experiment
+python -m evaluation.run_eval --config advanced --retrieval-only   # no Groq calls
+python -m evaluation.run_eval --config rerank --limit 5   # quick test
 ```
 
-Linux/Mac:
+The PDF is indexed into a temporary folder, so your real database is never touched.
+Results go to `evaluation/results/`:
+- `<config>_per_question.csv`: every question, retrieved pages, answer and scores
+- `summary.csv` / `summary.md`: one row per config
+
+Judge calls are spaced out (`--sleep`, default 2 s) and retried with exponential
+backoff when Groq returns rate-limit errors.
+
+### Results
+
+<!-- EVAL_RESULTS -->
+
+---
+
+## Example (real output, test PDF)
+
+**Q:** What is overfitting?
+**A:** "Over-fitting is when a model learns the training data too well—essentially
+memorizing it—so it achieves perfect or near-perfect accuracy on that data but performs
+poorly on new, unseen examples…"
+**Sources:** Ml_book.pdf pages 20, 19, 22, 3
+
+**Follow-up (same session):** How is it different from underfitting?
+**Rewritten to:** "How is overfitting different from underfitting?"
+**Answer:** a comparison table citing pages 19 and 20.
+
+---
+
+## API
+
+| Method | Path | Body | Success | Errors |
+|---|---|---|---|---|
+| GET | `/health` | — | `{"status": "ok"}` | — |
+| POST | `/upload` | multipart `file` (PDF) | `{message, filename, pages, parent_chunks, total_chunks}` | 400 not a PDF · 422 unreadable PDF · 500 |
+| POST | `/chat` | `{"question": "...", "session_id": "optional"}` | `{question, standalone_question, answer, sources, session_id}` | 422 empty question · 429 Groq rate limit · 500 |
+| GET | `/documents` | — | `[{source, pages, chunks}]` indexed PDFs | — |
+
+Send the returned `session_id` with your next question to keep your own conversation history.
+
+---
+
+## Observability (Langfuse, optional)
+
+1. Create a free project at <https://cloud.langfuse.com>, or self-host it with Docker
+   (see the Langfuse docs).
+2. Put `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` and `LANGFUSE_BASE_URL` in `.env`,
+   then restart the API.
+3. Every question becomes one trace. It contains these spans, each with its latency:
+   - `query-transform`
+   - `search`
+   - `parent-mapping`
+   - `rerank` (with scores)
+   - `compression`
+   - `generation` (prompt and answer)
+
+   Traces are grouped by `session_id`, and uploads appear as `ingest` traces.
+
+Without the keys, tracing is off and the app works exactly the same. Step latencies
+are still written to `logs/app.log`.
+
+---
+
+## Tests & CI
 
 ```bash
-PYTHONPATH=. pytest
+make test        # or: pytest -q
 ```
 
-## Current Test Results
-
-```text
-6 passed in 78.68s
-```
-
-## Tests Covered
-
-| Test File | Purpose |
-|----------|---------|
-| `test_pdf_loader.py` | Validates PDF loading and text extraction |
-| `test_chunker.py` | Validates document chunking |
-| `test_embeddings.py` | Validates embedding generation |
-| `test_vectordb.py` | Validates ChromaDB vector store creation |
-| `test_retriever.py` | Validates semantic retrieval |
-| `test_rag.py` | Validates full RAG response generation |
-
-## CI Pipeline
-
-GitHub Actions automatically runs the test suite on every push and pull request to `main`.
-
-Workflow file:
-
-```text
-.github/workflows/ci.yml
-```
-```
-# 🧩 Production Features
-
-✅ Modular FastAPI architecture  
-✅ Startup lifecycle loading  
-✅ Persistent vector database  
-✅ Conversation memory  
-✅ Structured logging  
-✅ Error handling  
-✅ Dockerized deployment  
-✅ Source-aware citations  
-✅ Config-driven architecture  
+- Most tests use fake embeddings and a fake LLM, so they run offline in about 20 s.
+- Tests that call Groq are skipped when `GROQ_API_KEY` is not set.
+- Current result: 62 passed with a key; 60 passed and 2 skipped without one.
+- GitHub Actions runs the suite on every push and pull request to `main`
+  (CPU-only torch).
 
 ---
 
-# 🔮 Future Improvements
+## Future work
 
-- Hybrid Search (BM25 + Vector Search)
-- Multi-PDF Support
-- Response Streaming
-- Authentication
-- CI/CD Pipeline
-- Cloud Deployment
-- Analytics Dashboard
+- Evaluate on a larger, more varied document set and tune `top_k` and the thresholds on it
+- Store sessions in Redis; use a database instead of the JSON docstore
+- Stream answers; add authentication
+- Try stronger or multilingual embedding and reranker models
 
 ---
 
-# 👨‍💻 Author
+## Author
 
-Your Name
+**Syed Qosain Hyder Bukhari**
 
-GitHub:
-```text
-https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot
-```
-
-LinkedIn:
-```text
-https://www.linkedin.com/in/syedqosainbukhari
-```
-
+- GitHub: <https://github.com/QosainBukhari/Document-Q-A-RAG-Chatbot>
+- LinkedIn: <https://www.linkedin.com/in/syedqosainbukhari>
