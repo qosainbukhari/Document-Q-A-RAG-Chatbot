@@ -1,4 +1,3 @@
-from src.retriever.retriever import Retriever
 from src.llm.rag_chain import RAGChain
 
 
@@ -6,18 +5,13 @@ class RAGService:
 
     def __init__(
         self,
-        vectordb,
-        llm,
+        components,
         memory=None
     ):
 
-        self.retriever = Retriever(
-            vectordb
-        )
-
         self.rag_chain = RAGChain(
-            self.retriever,
-            llm,
+            components.retriever,
+            components.llm,
             memory
         )
 

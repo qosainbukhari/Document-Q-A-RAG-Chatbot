@@ -1,7 +1,6 @@
-import yaml
-
+from src.components import build_components
+from src.config import load_config
 from src.embeddings.embedding_model import EmbeddingModel
-from src.vectordb.chroma_store import ChromaVectorStore
 from src.llm.groq_client import GroqClient
 from src.llm.conversation_memory import SessionMemoryStore
 
@@ -12,22 +11,19 @@ def load_models(app, config_path="configs/config.yaml"):
 
     try:
 
-        with open(config_path, "r") as file:
-            config = yaml.safe_load(file)
+        config = load_config(config_path)
 
         logger.info("Loading embedding model...")
 
         embedding_model = EmbeddingModel().get_model()
 
-        logger.info("Loading vector database...")
-
-        vector_store = ChromaVectorStore(embedding_model)
-
-        vectordb = vector_store.load_vector_store()
-
         logger.info("Loading LLM...")
 
         llm = GroqClient().get_llm()
+
+        logger.info("Building RAG pipeline...")
+
+        components = build_components(config, embedding_model, llm)
 
         logger.info("Loading conversation memory...")
 
@@ -37,10 +33,7 @@ def load_models(app, config_path="configs/config.yaml"):
         )
 
         # Store globally inside FastAPI app
-        app.state.embedding_model = embedding_model
-        app.state.vector_store = vector_store
-        app.state.vectordb = vectordb
-        app.state.llm = llm
+        app.state.components = components
         app.state.memory_store = memory_store
 
         logger.info(

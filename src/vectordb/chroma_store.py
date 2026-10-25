@@ -10,9 +10,14 @@ load_dotenv()
 
 class ChromaVectorStore:
 
-    def __init__(self, embedding_model, persist_directory=None):
+    def __init__(self, embedding_model, persist_directory=None,
+                 collection_name="langchain"):
 
         self.embedding_model = embedding_model
+
+        # One collection per chunking strategy, so naive and parent-child
+        # chunks never get mixed in the same search
+        self.collection_name = collection_name
 
         self.persist_directory = (
             persist_directory or os.getenv("CHROMA_DB_DIR")
@@ -124,6 +129,7 @@ class ChromaVectorStore:
         try:
 
             vectordb = Chroma(
+                collection_name=self.collection_name,
                 persist_directory=self.persist_directory,
                 embedding_function=self.embedding_model
             )

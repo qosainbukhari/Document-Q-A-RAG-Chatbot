@@ -2,32 +2,14 @@ import pytest
 from fastapi.testclient import TestClient
 from langchain_core.embeddings import DeterministicFakeEmbedding
 
+from tests.conftest import PDF_PATH
+
 from app.main import app
 from app.routes import upload as upload_route
 from src.ingestion.chunker import TextChunker
 from src.ingestion.pdf_loader import PDFLoader
 from src.llm.conversation_memory import SessionMemoryStore
 from src.vectordb.chroma_store import ChromaVectorStore
-
-
-PDF_PATH = "test/Ml_book.pdf"
-
-
-class FakeResponse:
-
-    def __init__(self, content):
-        self.content = content
-
-
-class RecordingLLM:
-
-    # Stands in for Groq: no network, and remembers every prompt it saw
-    def __init__(self):
-        self.prompts = []
-
-    def invoke(self, prompt):
-        self.prompts.append(prompt)
-        return FakeResponse(f"fake answer {len(self.prompts)}")
 
 
 @pytest.fixture(scope="module")
@@ -106,13 +88,11 @@ def test_least_recently_used_session_is_evicted():
 # ---------- API: status codes + sessions ----------
 
 @pytest.fixture
-def client(vector_store, monkeypatch, tmp_path):
+def client(make_components, monkeypatch, tmp_path):
     # TestClient without `with` skips startup, so no real models are loaded
     monkeypatch.setattr(upload_route, "UPLOAD_DIR", str(tmp_path / "raw"))
 
-    app.state.vector_store = vector_store
-    app.state.vectordb = vector_store.load_vector_store()
-    app.state.llm = RecordingLLM()
+    app.state.components = make_components()
     app.state.memory_store = SessionMemoryStore(window_size=5)
 
     return TestClient(app)
@@ -148,7 +128,7 @@ def test_upload_twice_keeps_same_chunk_count(client):
 
     assert first.status_code == 200
     assert second.status_code == 200
-    assert count(app.state.vectordb) == first.json()["total_chunks"]
+    assert count(app.state.components.vectordb) == first.json()["total_chunks"]
 
 
 def test_chat_rejects_empty_question(client):
@@ -164,7 +144,7 @@ def test_chat_returns_500_when_llm_fails(client):
         def invoke(self, prompt):
             raise RuntimeError("groq is down")
 
-    app.state.llm = BrokenLLM()
+    app.state.components.llm = BrokenLLM()
 
     response = client.post("/chat", json={"question": "What is ML?"})
 
@@ -174,7 +154,7 @@ def test_chat_returns_500_when_llm_fails(client):
 
 def test_chat_history_is_per_session(client):
     upload(client)
-    llm = app.state.llm
+    llm = app.state.components.llm
 
     alice = client.post("/chat", json={"question": "alice question one"})
     session_id = alice.json()["session_id"]

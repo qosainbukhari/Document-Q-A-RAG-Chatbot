@@ -5,7 +5,6 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Request
 from pypdf.errors import PdfReadError
 
 from src.ingestion.pdf_loader import PDFLoader
-from src.ingestion.chunker import TextChunker
 
 from src.utils.logger import logger
 
@@ -73,17 +72,9 @@ def upload_pdf(
 
     try:
 
-        # Chunking
-        chunker = TextChunker()
-
-        chunks = chunker.create_chunks(
+        # Chunk + index (replaces old chunks of this file)
+        stats = request.app.state.components.ingestion.ingest_documents(
             documents
-        )
-
-        # Add to the vector DB loaded at startup (replaces old chunks of this file)
-        stored = request.app.state.vector_store.add_chunks(
-            request.app.state.vectordb,
-            chunks
         )
 
     except Exception as e:
@@ -98,5 +89,5 @@ def upload_pdf(
     return {
         "message": "PDF uploaded successfully",
         "filename": filename,
-        "total_chunks": stored
+        **stats
     }

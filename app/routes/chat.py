@@ -24,16 +24,13 @@ def chat(
     try:
 
         # Access globally loaded resources
-        vectordb = request.app.state.vectordb
-
-        llm = request.app.state.llm
+        components = request.app.state.components
 
         memory = request.app.state.memory_store.get(session_id)
 
         # Create service
         rag_service = RAGService(
-            vectordb,
-            llm,
+            components,
             memory
         )
 
