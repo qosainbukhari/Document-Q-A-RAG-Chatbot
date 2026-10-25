@@ -6,7 +6,7 @@ from src.utils.logger import logger
 class Retriever:
 
     def __init__(self, vectordb, config_path=DEFAULT_CONFIG_PATH,
-                 config=None, docstore=None, bm25=None):
+                 config=None, docstore=None, bm25=None, reranker=None):
 
         self.vectordb = vectordb
 
@@ -27,6 +27,9 @@ class Retriever:
 
         # Only needed for hybrid search
         self.bm25 = bm25
+
+        # Optional: re-scores candidates; without it we trust search order
+        self.reranker = reranker
 
     def search(self, query):
 
@@ -81,7 +84,12 @@ class Retriever:
         try:
             chunks = self.search(query)
 
-            results = self.to_parents(chunks)[:self.top_k]
+            candidates = self.to_parents(chunks)
+
+            if self.reranker:
+                results = self.reranker.rerank(query, candidates, self.top_k)
+            else:
+                results = candidates[:self.top_k]
 
             logger.info(
                 f"Retrieved {len(results)} relevant chunks "

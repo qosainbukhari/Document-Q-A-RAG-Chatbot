@@ -36,18 +36,26 @@ def fake_embeddings():
     return DeterministicFakeEmbedding(size=32)
 
 
+# Heavy or LLM-calling features are OFF in tests unless a test turns them on
+TEST_DEFAULTS = {
+    "retriever": {"rerank": {"enabled": False}},
+}
+
+
 @pytest.fixture
 def make_components(fake_embeddings, tmp_path):
 
     # make_components({"retriever": {"top_k": 2}}) -> components on a temp dir
-    def factory(overrides=None, llm=None, embeddings=None):
-        config = deep_merge(load_config(), overrides or {})
+    def factory(overrides=None, llm=None, embeddings=None, reranker=None):
+        config = deep_merge(load_config(), TEST_DEFAULTS)
+        config = deep_merge(config, overrides or {})
 
         return build_components(
             config,
             embeddings or fake_embeddings,
             llm or RecordingLLM(),
-            persist_directory=str(tmp_path / "store")
+            persist_directory=str(tmp_path / "store"),
+            reranker=reranker
         )
 
     return factory

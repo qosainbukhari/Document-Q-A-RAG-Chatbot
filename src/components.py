@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 from src.ingestion.pipeline import IngestionPipeline
 from src.retriever.bm25_index import BM25Index
+from src.retriever.reranker import CrossEncoderReranker
 from src.retriever.retriever import Retriever
 from src.vectordb.chroma_store import ChromaVectorStore
 from src.vectordb.docstore import JSONDocStore
@@ -19,11 +20,13 @@ class RAGComponents:
     vectordb: Any
     docstore: JSONDocStore
     bm25: Optional[BM25Index]
+    reranker: Optional[CrossEncoderReranker]
     retriever: Retriever
     ingestion: IngestionPipeline
 
 
-def build_components(config, embedding_model, llm, persist_directory=None):
+def build_components(config, embedding_model, llm, persist_directory=None,
+                     reranker=None):
 
     # Builds every piece of the pipeline from the config, once.
     # Used by the FastAPI startup, the evaluation script and the tests.
@@ -59,11 +62,21 @@ def build_components(config, embedding_model, llm, persist_directory=None):
 
         on_indexed.append(lambda: bm25.rebuild(docstore.all_children()))
 
+    # The cross-encoder is ~90 MB: load it once. Callers (e.g. the eval
+    # script running several configs) may pass an already loaded one.
+    rerank_config = retriever_config.get("rerank", {})
+
+    if not rerank_config.get("enabled", False):
+        reranker = None
+    elif reranker is None:
+        reranker = CrossEncoderReranker(rerank_config["model"])
+
     retriever = Retriever(
         vectordb,
         config=config,
         docstore=docstore if strategy == "parent_child" else None,
-        bm25=bm25
+        bm25=bm25,
+        reranker=reranker
     )
 
     ingestion = IngestionPipeline(
@@ -78,6 +91,7 @@ def build_components(config, embedding_model, llm, persist_directory=None):
         vectordb=vectordb,
         docstore=docstore,
         bm25=bm25,
+        reranker=reranker,
         retriever=retriever,
         ingestion=ingestion,
     )
